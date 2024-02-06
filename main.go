@@ -100,10 +100,6 @@ func addMessage(msg Message) {
 }
 
 func newUser(w http.ResponseWriter, r *http.Request) {
-	if (r.Method != http.MethodPut) {
-		http.Error(w, "HTTP request error", http.StatusBadRequest)
-		return
-	}
 
 	// create name for user
 	name := "user" + uuid.New().String()
@@ -146,18 +142,9 @@ func newUser(w http.ResponseWriter, r *http.Request) {
 }
 
 func chat(w http.ResponseWriter, r *http.Request) {
-	if (r.Method != http.MethodPost) {
-		http.Error(w, "HTTP request error", http.StatusBadRequest)
-		return
-	}
-	vars := mux.Vars(r)
-    username := vars["username"]
-	var room string
-	room, ok := users[username]
-	if !ok {
-		http.Error(w, "User not found", http.StatusBadRequest)
-		return
-	}
+
+	
+
 
 	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
@@ -166,24 +153,34 @@ func chat(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var msg Message
-	err = json.Unmarshal(body, &msg)
-	if err != nil {
+	
+	if err = json.Unmarshal(body, &msg); err != nil {
 		http.Error(w, "Error decoding JSON", http.StatusBadRequest)
 		return
 	}
 
+	room, ok := users[msg.Username]
+	if !ok {
+		http.Error(w, "User not found", http.StatusBadRequest)
+		return
+	}
+	if _, ok := roomChat[room]; !ok {
+		roomChat[room] = &Queue{}
+	}
 	roomChat[room].Enqueue(msg)
 
+	fmt.Printf("new message: %s", msg.Content)
 	printRequest(r)
 	w.WriteHeader(http.StatusOK)
 	printServerStatus()
 }
 
 func main() {
-	http.HandleFunc("/newuser", newUser)
-	http.HandleFunc("/chat/{username}", chat)
+	r := mux.NewRouter()
+	r.HandleFunc("/newuser", newUser).Methods("PUT")
+	r.HandleFunc("/chat", chat).Methods("POST")
 
-	err := http.ListenAndServe(":3333", nil)
+	err := http.ListenAndServe(":3333", r)
 	if errors.Is(err, http.ErrServerClosed) {
 		fmt.Printf("server closed\n")
 	} else if err != nil {
