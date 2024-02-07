@@ -111,9 +111,10 @@ func (cs *ChatService) AddUser() (string, error) {
 		return "", errors.New("ChatService::AddUser - Rooms are at max capacity!")
 	}
 	room := NewChatRoom()
-	rooms[room.GetID()] = room
+	cs.m_rooms[room.GetID()] = room
 	room.AddUser(name)
 	cs.m_users[name] = room
+	return name, nil
 }
 
 func (cs *ChatService) SendMessage(msg Message) error {
