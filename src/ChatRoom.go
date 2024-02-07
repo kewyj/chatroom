@@ -96,8 +96,10 @@ func (cs *ChatService) PrintServerStatus() {
 }
 
 func (cs *ChatService) AddUser() (string, error) {
+	count := 0
 	name := uuid.New().String()
 	for _, val := range cs.m_rooms {
+		count++
 		if val.GetCountUsers() < MAX_USERS_IN_ROOM {
 			val.AddUser(name)
 			cs.m_users[name] = val
@@ -105,7 +107,13 @@ func (cs *ChatService) AddUser() (string, error) {
 			return name, nil
 		}
 	}
-	return "", errors.New("ChatService::AddUser - Rooms are at max capacity!")
+	if count >= MAX_ROOMS {
+		return "", errors.New("ChatService::AddUser - Rooms are at max capacity!")
+	}
+	room := NewChatRoom()
+	rooms[room.GetID()] = room
+	room.AddUser(name)
+	cs.m_users[name] = room
 }
 
 func (cs *ChatService) SendMessage(msg Message) error {
