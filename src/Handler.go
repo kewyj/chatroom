@@ -1,13 +1,17 @@
 package src
 
 import (
-	"net/http"
-	"io/ioutil"
 	"encoding/json"
+	"io/ioutil"
+	"net/http"
 )
 
 type Handler struct {
 	controller Controller
+}
+
+type NewUserResponse struct {
+	Username string `json:"username"`
 }
 
 func NewHandler(c Controller) *Handler {
@@ -23,11 +27,21 @@ func (h *Handler) NewUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	http.SetCookie(w, &http.Cookie{
-		Name:    "session_token",
-		Value:   name,
+		Name:   "session_token",
+		Value:  name,
 		MaxAge: -1,
 	})
-	w.WriteHeader(http.StatusOK)
+	// return username to be stored as cookie
+	response := NewUserResponse{
+		Username: name,
+	}
+	responseJSON, err := json.Marshal(response)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.Write(responseJSON)
 }
 
 func (h *Handler) SendMessage(w http.ResponseWriter, r *http.Request) {

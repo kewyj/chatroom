@@ -44,7 +44,7 @@ func (cr *ChatRoom) IsEmpty() bool {
 
 func (cr *ChatRoom) AddUser(user string) {
 	cr.m_users = append(cr.m_users, user)
-	cr.SendSystemMessage(user + " has joined the room.")
+	cr.SendSystemMessage(user[:4] + " has joined the room.")
 }
 
 func (cr *ChatRoom) GetMessages() *MessageQueue {
@@ -60,7 +60,9 @@ func (cr *ChatRoom) SendSystemMessage(msg string) {
 }
 
 type ChatService struct {
+	// map of room name to Chatroom object
 	m_rooms map[string]*ChatRoom
+	// map of username to Chatroom object
 	m_users map[string]*ChatRoom
 }
 
@@ -89,19 +91,20 @@ func (cs *ChatService) PrintServerStatus() {
 		fmt.Println("")
 		fmt.Println("MESSAGES")
 		for _, msg := range *val.GetMessages() {
-			fmt.Println(msg.Username)
-			fmt.Println(msg.Content)
+			fmt.Println(msg.Username, msg.Content)
 		}
 		fmt.Println("")
 	}
 }
 
 func (cs *ChatService) AddUser() (string, error) {
+	// count num rooms
 	count := 0
 	name := uuid.New().String()
 	for _, val := range cs.m_rooms {
 		count++
 		if val.GetCountUsers() < MAX_USERS_IN_ROOM {
+			// found available room
 			val.AddUser(name)
 			cs.m_users[name] = val
 			cs.PrintServerStatus()
@@ -109,8 +112,10 @@ func (cs *ChatService) AddUser() (string, error) {
 		}
 	}
 	if count >= MAX_ROOMS {
-		return "", errors.New("ChatService::AddUser - Rooms are at max capacity!")
+		// did not find available room + num rooms > MAX_ROOMS
+		return "", errors.New("ChatService::AddUser - Rooms are at max capacity")
 	}
+	// did not find available room, create new chat room
 	room := NewChatRoom()
 	cs.m_rooms[room.GetID()] = room
 	room.AddUser(name)
@@ -121,11 +126,13 @@ func (cs *ChatService) AddUser() (string, error) {
 func (cs *ChatService) SendMessage(msg Message) error {
 	val, ok := cs.m_users[msg.Username]
 	if ok {
+		// user exists
+		msg.Username = msg.Username[:4] // shorten display name
 		val.SendMessage(msg)
 		cs.PrintServerStatus()
 		return nil
 	}
-	return errors.New("ChatService::SendMessage - User not found.")
+	return errors.New("ChatService::SendMessage - User not found")
 }
 
 func (cs *ChatService) SendSystemMessage(room string, msg string) error {
@@ -134,7 +141,7 @@ func (cs *ChatService) SendSystemMessage(room string, msg string) error {
 		val.SendSystemMessage(msg)
 		return nil
 	}
-	return errors.New("ChatService::SendSystemMessage - Room not found.")
+	return errors.New("ChatService::SendSystemMessage - Room not found")
 }
 
 func (cs *ChatService) SendSystemMessageGlobal(msg string) {
