@@ -26,11 +26,6 @@ func (h *Handler) NewUser(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusServiceUnavailable)
 		return
 	}
-	http.SetCookie(w, &http.Cookie{
-		Name:   "session_token",
-		Value:  name,
-		MaxAge: -1,
-	})
 	// return username to be stored as cookie
 	response := NewUserResponse{
 		Username: name,
