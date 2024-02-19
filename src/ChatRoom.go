@@ -3,6 +3,7 @@ package src
 import (
 	"errors"
 	"fmt"
+
 	"github.com/google/uuid"
 )
 
@@ -12,15 +13,15 @@ const INITIAL_ROOMS = 1
 
 // chatroom
 type ChatRoom struct {
-	m_id string
-	m_users []string
+	m_id       string
+	m_users    []string
 	m_messages *MessageQueue
 }
 
 func NewChatRoom() *ChatRoom {
 	return &ChatRoom{
-		m_id: uuid.New().String(),
-		m_users: []string{},
+		m_id:       uuid.New().String(),
+		m_users:    []string{},
 		m_messages: &MessageQueue{},
 	}
 }
@@ -79,11 +80,11 @@ func NewChatService() *ChatService {
 func (cs *ChatService) PrintServerStatus() {
 	fmt.Println("ROOMS AND USERS")
 	for key, val := range cs.m_rooms {
-		fmt.Println("ROOM: " + key)
+		fmt.Println("ROOM: " + key[:4])
 		fmt.Println("")
 		fmt.Println("USERS")
 		for _, user := range val.GetUsers() {
-			fmt.Println(user)
+			fmt.Println(user[:4])
 		}
 		fmt.Println("")
 		fmt.Println("MESSAGES")
