@@ -5,7 +5,7 @@ export interface LoginProps {}
 
 const LoginPage: React.FunctionComponent<LoginProps> = (props) => {
     return (
-        <div>
+        <div className="LoginPage">
             <LoginButton>Log In</LoginButton>
         </div>
     );
