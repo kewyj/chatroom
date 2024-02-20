@@ -18,6 +18,7 @@ func main() {
 	r.HandleFunc("/newuser", handler.NewUser).Methods("PUT")
 	r.HandleFunc("/chat", handler.SendMessage).Methods("POST")
 	r.HandleFunc("/poll", handler.Poll).Methods("GET")
+	r.HandleFunc("/exit", handler.Exit).Methods("DELETE")
 
 	err := http.ListenAndServe(":3333", r)
 	if errors.Is(err, http.ErrServerClosed) {

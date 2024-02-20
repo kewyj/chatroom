@@ -79,6 +79,20 @@ func (h *Handler) Poll(w http.ResponseWriter, r *http.Request) {
 	w.Write(jsonResponse)
 }
 
+func (h *Handler) Exit(w http.ResponseWriter, r *http.Request) {
+	msg, err := unmarshalMessage(r.Body)
+	if err != nil {
+		http.Error(w, "Error reading request body", http.StatusInternalServerError)
+		return
+	}
+	err = h.controller.RemoveUser(msg.Username)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	w.WriteHeader(http.StatusOK)
+}
+
 func unmarshalMessage(rbody io.ReadCloser) (Message, error) {
 	body, err := ioutil.ReadAll(rbody)
 	if err != nil {
