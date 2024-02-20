@@ -201,3 +201,30 @@ func (cs *ChatService) updateSubscribers(cr *ChatRoom, msg Message) {
 func (cs *ChatService) RetrieveUndelivered(user string) *MessageQueue {
 	return cs.m_subs[user]
 }
+
+func (cs *ChatService) RemoveUser(user string) error {
+	// remove from chatroom
+	room, ok := cs.m_users[user]
+	if !ok {
+		return errors.New("user not found")
+	}
+	index := -1
+	for i, val := range room.m_users {
+		if val == user {
+			index = i
+			break
+		}
+	}
+	if index != -1 {
+		room.m_users = append(room.m_users[:index], room.m_users[index+1:]...)
+	}
+	delete(cs.m_users, user)
+	delete(cs.m_subs, user)
+	// if room is empty delete it
+	if room.IsEmpty() {
+		delete(cs.m_rooms, room.m_id)
+	} else {
+		cs.SendSystemMessage(room.m_id, user[:4]+"has left the room.")
+	}
+	return nil
+}

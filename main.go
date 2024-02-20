@@ -8,18 +8,25 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/kewyj/chatroom/src"
+	"github.com/rs/cors"
 )
 
 func main() {
 	cacheData := src.NewChatService()
 	handler := src.NewHandler(cacheData)
 
+	// routes
 	r := mux.NewRouter()
 	r.HandleFunc("/newuser", handler.NewUser).Methods("PUT")
 	r.HandleFunc("/chat", handler.SendMessage).Methods("POST")
 	r.HandleFunc("/poll", handler.Poll).Methods("GET")
+	r.HandleFunc("/exit", handler.Exit).Methods("DELETE")
 
-	err := http.ListenAndServe(":3333", r)
+	// wrap with cors
+	c := cors.Default()
+	corsHandler := c.Handler(r)
+
+	err := http.ListenAndServe(":3333", corsHandler)
 	if errors.Is(err, http.ErrServerClosed) {
 		fmt.Printf("server closed\n")
 	} else if err != nil {
