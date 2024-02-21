@@ -46,13 +46,16 @@ const LoginButton = ({ children }: Props) => {
     };
 
     return (
-        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh' }}>
-            <img src="../../public/chatroomLogo.gif" alt="Chatroom Logo" style={{ maxWidth: '100%', maxHeight: '50vh', position: 'absolute', top: '35%', transform: 'translateX(2%)' }}/>
-            <button className='btn btn-primary btn-sx'
-                onClick={handleClick}>
-                {children}
-            </button>
-        </div>
+  <div style={{ position: 'relative', minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+    <div style={{ marginBottom: '20px' }}>
+      <img src="../../public/chatroomLogo.gif" alt="Chatroom Logo" style={{ maxWidth: '1000%', maxHeight: '50vh', position: 'absolute', top: '40%', left: '-100%', right: '50%', transform: 'translate(-50%, -50%)' }} />
+    </div>
+    <div>
+      <button className='btn btn-primary btn-sx' onClick={handleClick}>
+        {children}
+      </button>
+    </div>
+  </div>
   )
 }
 

@@ -3,8 +3,39 @@
     background-image: url('../../public/background.gif');
     background-size: cover;
     background-repeat: repeat;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.form-container {
+    text-align: center;
+}
+
+.form-group {
+    display: flex;
+    align-items: center;
+    margin-bottom: -900px;
+    /* Adjust as needed */
+}
+
+.form-label {
+    margin-right: 10px;
+    /* Adjust as needed */
+}
+
+.form-control {
+    height: 40px;
 }
 
 .scrollarea {
     min-height: 500px;
+}
+
+.btn.btn-primary.btn-sx {
+    height: 40px;
+    margin-top: 20px;
+    margin-left: 20px;
+    z-index: 1;
 }
