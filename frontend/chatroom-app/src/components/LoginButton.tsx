@@ -1,5 +1,12 @@
 import { useNavigate } from "react-router-dom";
-import '../styles.css'
+import { useDispatch } from "react-redux";
+import '../styles.css';
+import config from '../../config.json';
+import Axios from "axios";
+import store from "../store.tsx";
+
+// Set action type
+const GET_NEW_USER_ID = "get/newuserID";
 
 interface Props {
     children: string;
@@ -11,13 +18,38 @@ interface Props {
 }
 
 const LoginButton = ({ children }: Props) => {
+
     const navigate = useNavigate();
+    const dispatch = useDispatch();
+
+    const handleClick = async () => {
+        try {
+            // to get userID
+            const serverHost = config.server.host;
+            const serverPort = config.server.port;
+            const path = "/newuser";
+            const url = `http://${serverHost}:${serverPort}${path}`;
+            
+            // PUT request to server
+            const response = await Axios.put(url);
+            const newUserID = response.data;
+
+            // Dispatch an action to update the store with new userID
+            dispatch({ type: GET_NEW_USER_ID, payload: newUserID });
+
+            navigate('/Chat');
+    
+        }
+        catch (error) {
+            console.error("Error fetching data:", error);
+        }
+    };
 
     return (
         <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh' }}>
             <img src="../../public/chatroomLogo.gif" alt="Chatroom Logo" style={{ maxWidth: '100%', maxHeight: '50vh', position: 'absolute', top: '35%', transform: 'translateX(2%)' }}/>
             <button className='btn btn-primary btn-sx'
-                onClick={() => navigate('/Chat')}>
+                onClick={handleClick}>
                 {children}
             </button>
         </div>

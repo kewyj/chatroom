@@ -1,10 +1,9 @@
 
 import LoginPage from './pages/Login';
 import ChatPage from './pages/Chat';
-
 import { BrowserRouter, Route, Routes } from 'react-router-dom';
 
-export interface AppProps {}
+export interface AppProps { }
 
 function App() {
   return (
