@@ -62,7 +62,11 @@ func (h *Handler) Poll(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Error reading request body", http.StatusInternalServerError)
 		return
 	}
-	messages := h.controller.RetrieveUndelivered(msg.Username)
+	messages, err := h.controller.RetrieveUndelivered(msg.Username)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 
 	// Convert the array of messages to JSON format
 	jsonResponse, err := json.Marshal(*messages)

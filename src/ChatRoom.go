@@ -198,8 +198,14 @@ func (cs *ChatService) updateSubscribers(cr *ChatRoom, msg Message) {
 	}
 }
 
-func (cs *ChatService) RetrieveUndelivered(user string) *MessageQueue {
-	return cs.m_subs[user]
+func (cs *ChatService) RetrieveUndelivered(user string) (*MessageQueue, error) {
+	cs.mu.Lock()
+	defer cs.mu.Unlock()
+	val, ok := cs.m_subs[user]
+	if ok {
+		return val, nil
+	}
+	return nil, errors.New("User not found")
 }
 
 func (cs *ChatService) RemoveUser(user string) error {
