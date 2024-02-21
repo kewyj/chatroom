@@ -106,3 +106,7 @@ func unmarshalMessage(rbody io.ReadCloser) (Message, error) {
 
 	return msg, nil
 }
+
+func enableCORS(w *http.ResponseWriter) {
+	(*w).Header().Set("Access-Control-Allow-Origin", "*")
+}

@@ -23,7 +23,12 @@ func main() {
 	r.HandleFunc("/exit", handler.Exit).Methods("DELETE")
 
 	// wrap with cors
-	c := cors.Default()
+	c := cors.New(cors.Options{
+		AllowedOrigins: []string{"*"},
+		AllowedMethods: []string{"GET", "POST", "PUT", "DELETE"},
+		AllowedHeaders: []string{"*"},
+		Debug:          true,
+	})
 	corsHandler := c.Handler(r)
 
 	err := http.ListenAndServe(":3333", corsHandler)
