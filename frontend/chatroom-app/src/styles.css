@@ -9,17 +9,6 @@
     align-items: center;
 }
 
-.form-container {
-    text-align: center;
-}
-
-.form-group {
-    display: flex;
-    align-items: center;
-    margin-bottom: -900px;
-    /* Adjust as needed */
-}
-
 .form-label {
     margin-right: 10px;
     /* Adjust as needed */

@@ -19,13 +19,13 @@ func main() {
     r := mux.NewRouter()
     r.HandleFunc("/newuser", handler.NewUser).Methods("PUT")
     r.HandleFunc("/chat", handler.SendMessage).Methods("POST")
-    r.HandleFunc("/poll", handler.Poll).Methods("GET")
+    r.HandleFunc("/poll", handler.Poll).Methods("PATCH")
     r.HandleFunc("/exit", handler.Exit).Methods("DELETE")
 
     // wrap with cors
     c := cors.New(cors.Options{
         AllowedOrigins: []string{"*"},
-        AllowedMethods: []string{"GET", "POST", "PUT", "DELETE"},
+        AllowedMethods: []string{"PATCH", "POST", "PUT", "DELETE"},
         AllowedHeaders: []string{"*"},
     })
     corsHandler := c.Handler(r)

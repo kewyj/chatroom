@@ -10,14 +10,6 @@ const LoginPage: React.FunctionComponent<LoginProps> = (props) => {
 
     return (
         <div className="LoginPage">
-            <div className="form-container">
-                <form>
-                    <div className="form-group">
-                        <label htmlFor="userName" className="form-label">Username:</label>
-                        <input type="text" className="form-control" id="userName" />
-                    </div>
-                </form>
-            </div>
             <div>
                 <LoginButton>Log In</LoginButton>
             </div>
