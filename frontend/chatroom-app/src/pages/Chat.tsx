@@ -71,14 +71,16 @@ const fetchMessagesFromServer = async () => {
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify(dataforPatch),
+            body: JSON.stringify(dataforPatch)
         });
         if (!response.ok) {
             throw new Error('Failed to fetch messages');
         }
         const data = await response.json();
 
-        // CHEck if server response was null
+        console.log(data)
+
+        // CHEck if server response was null before calling state change
         if (!data.messages || data.messages.length == 0)
             return;
 
