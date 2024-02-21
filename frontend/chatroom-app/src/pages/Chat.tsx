@@ -1,5 +1,6 @@
 import React, {useEffect, useState} from 'react';
 import "@fortawesome/fontawesome-free/css/all.css";
+import store from '../store.tsx'
 
 export interface ChatProps { }
 
@@ -18,12 +19,14 @@ const ChatPage: React.FunctionComponent<ChatProps> = (props) => {
         event.preventDefault();
     }
 
+    console.log(store.getState().userID)
+
     return (
         <div className="container">
             <div className="d-flex flex-column align-items-stretch flex-shrink-8 bg-white">
                 <div
                     className="d-flex align-items-center flex-shrink-8 p-3 link-dark text-decoration-none border-bottom">
-                    <input className="fs-5 fw-semibold" value={username} onChange={event => setUsername(event.target.value)} />
+                    <input className="fs-5 fw-semibold" value={store.getState().userID.username?.substring(0, 3)} readOnly />
                 </div>
                 <div className="list-group list-geoup-flush border-bottom scrollarea">
                     {messages.map(message => {

@@ -1,18 +1,19 @@
 import { createStore } from 'redux';
 // Define an initial state value for the app
 const initialState = {
-  value: ''
+  userID: '',
+  msg: ''
 }
 
-function getUserID(state = initialState, action) {
+function reducer(state = initialState, action) {
   switch (action.type) {
-    case 'get/newuserID':
-      return { ...state, value: action.payload };
+    case 'set_user_id':
+      return { ...state, userID: action.payload };
     default:
       return state;
   }
 }
 
-const store = createStore(getUserID);
+const store = createStore(reducer);
 
 export default store;

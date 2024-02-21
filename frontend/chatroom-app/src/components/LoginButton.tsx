@@ -3,10 +3,9 @@ import { useDispatch } from "react-redux";
 import '../styles.css';
 import config from '../../config.json';
 import Axios from "axios";
-import store from "../store.tsx";
 
 // Set action type
-const GET_NEW_USER_ID = "get/newuserID";
+const GET_NEW_USER_ID = "set_user_id";
 
 interface Props {
     children: string;
