@@ -17,9 +17,12 @@ const LoginPage: React.FunctionComponent<LoginProps> = (props) => {
     const url = `http://${serverHost}:${serverPort}${path}`;
 
     useEffect(() => {
-        Axios.get(url).then((respond) => {
-            //console.log(respond.data);
+        Axios.put(url).then((respond) => {
+            console.log(respond.data);
             setuserID(respond.data);
+        })
+            .catch((error) => {
+                console.error("Error fetching data:", error);
         });
     }, []);
 

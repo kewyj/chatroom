@@ -4,3 +4,7 @@
     background-size: cover;
     background-repeat: repeat;
 }
+
+.scrollarea {
+    min-height: 500px;
+}

@@ -1,4 +1,3 @@
-import React from 'react';
 import LoginPage from './pages/Login';
 import ChatPage from './pages/Chat';
 
