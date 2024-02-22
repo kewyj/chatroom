@@ -48,6 +48,17 @@ func (h *Handler) SendMessage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if h.controller.IsUserSpamming(msg.Username) {
+		response := NewUserResponse{
+			Username: "$",
+		}
+
+		responseJSON, _ := json.Marshal(response)
+		w.Header().Set("Content-Type", "application/json")
+		w.Write(responseJSON)
+		return
+	}
+
 	err = h.controller.SendMessage(msg)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusServiceUnavailable)

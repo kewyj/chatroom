@@ -5,4 +5,5 @@ type Controller interface {
 	SendMessage(msg Message) error
 	RetrieveUndelivered(string) (*MessageQueue, error)
 	RemoveUser(string) error
+	IsUserSpamming(string) bool
 }
