@@ -1,9 +1,9 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import LoginButton from '.././components/LoginButton';
 
 export interface LoginProps { }
 
-const LoginPage: React.FunctionComponent<LoginProps> = (props) => {
+const LoginPage: React.FunctionComponent<LoginProps> = () => {
 
     // make state to store the user
     //const [userID, setuserID] = useState("");

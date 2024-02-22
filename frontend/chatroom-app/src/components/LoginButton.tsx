@@ -3,9 +3,10 @@ import { useDispatch } from "react-redux";
 import '../styles.css';
 import config from '../../config.json';
 import Axios from "axios";
+import { GET_USER_ID } from "../action_types";
 
 // Set action type
-const GET_NEW_USER_ID = "set_user_id";
+//const GET_NEW_USER_ID = "set_user_id";
 
 interface Props {
     children: string;
@@ -34,7 +35,7 @@ const LoginButton = ({ children }: Props) => {
             const newUserID = response.data;
 
             // Dispatch an action to update the store with new userID
-            dispatch({ type: GET_NEW_USER_ID, payload: newUserID });
+            dispatch({ type: GET_USER_ID, payload: newUserID });
 
             navigate('/Chat');
     

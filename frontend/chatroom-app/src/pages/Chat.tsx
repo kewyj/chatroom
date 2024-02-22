@@ -1,18 +1,32 @@
 import React, {useEffect, useState} from 'react';
 import "@fortawesome/fontawesome-free/css/all.css";
-import AppState from '../store.tsx'
+import AppState from '../store'
 import { useSelector, useDispatch } from 'react-redux';
 import {setMessage} from '../actions'
 
 export interface ChatProps { }
 
-const ChatPage: React.FunctionComponent<ChatProps> = (props) => {
+// Define the type for your store state
+interface AppState {
+  userID: {
+    username: string;
+    } | null;
+  message: string;
+}
+
+// Define the type for Message
+interface Message {
+  username: string;
+  content: string;
+}
+
+const ChatPage: React.FunctionComponent<ChatProps> = () => {
 
     const dispatch = useDispatch();
     const userID = useSelector((state: AppState) => state.userID);
     const message = useSelector((state: AppState) => state.message);
-    const [receivedMessages, setReceivedMessages] = useState([]);
-    const usernameToSend = AppState.getState().userID ? AppState.getState().userID.username : '';
+    const [receivedMessages, setReceivedMessages] = useState<Message[]>([]);
+    const usernameToSend = userID ? userID.username : '';
 
     useEffect(() => {
         // Fetch messages from the server and update receivedMessages state
@@ -78,7 +92,7 @@ const fetchMessagesFromServer = async () => {
         }
         const data = await response.json();
 
-        console.log(data)
+        //console.log(data)
 
         // CHEck if server response was null before calling state change
         if (!data.messages || data.messages.length == 0)
@@ -103,10 +117,10 @@ const fetchMessagesFromServer = async () => {
                 <input className="form-control" placeholder="Say something..." value={message} onChange={handleInputChange} />
             </form>
             <div>
-                {receivedMessages.map((msg, index) => (
+                {receivedMessages && receivedMessages.map((message, index) => (
                     <div key={index}>
-                        <div>{msg.username}</div>
-                        <div>{msg.content}</div>
+                        <div>{message.username}</div>
+                        <div>{message.content}</div>
                     </div>
                 ))}
             </div>
