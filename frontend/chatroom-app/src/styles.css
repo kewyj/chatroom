@@ -16,6 +16,8 @@
 
 .form-control {
     height: 40px;
+    position: fixed;
+    top: 750px;
 }
 
 .scrollarea {
@@ -27,4 +29,9 @@
     margin-top: 20px;
     margin-left: 20px;
     z-index: 1;
+}
+
+.spam-message {
+    position: fixed;
+    top: 790px;
 }
