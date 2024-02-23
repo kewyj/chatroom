@@ -2,7 +2,8 @@ import React, {useEffect, useState} from 'react';
 import "@fortawesome/fontawesome-free/css/all.css";
 import AppState from '../store'
 import { useSelector, useDispatch } from 'react-redux';
-import {setMessage} from '../actions'
+import { setMessage } from '../actions'
+import { TimerExample } from '../SpamTimer'
 
 export interface ChatProps { }
 
@@ -24,6 +25,8 @@ const isWhitespace = (str: string): boolean => {
     return /^\s*$/.test(str);
 }
 
+const timer = new TimerExample;
+
 const ChatPage: React.FunctionComponent<ChatProps> = () => {
 
     const dispatch = useDispatch();
@@ -37,13 +40,14 @@ const ChatPage: React.FunctionComponent<ChatProps> = () => {
     useEffect(() => {
         // Fetch messages from the server and update receivedMessages state
         fetchMessagesFromServer();
-        //checkSpamFromServer();
 
-        // Make interval every 1 sec
-        const intervalId = setInterval(fetchMessagesFromServer, 1000);
+        // Make interval every 0.1 sec
+        const intervalId = setInterval(fetchMessagesFromServer, 100);
 
         // Clear interval
-        return () => clearInterval(intervalId);
+        return () => {
+            clearInterval(intervalId);
+        };
     }, []);
 
     const send = async (event: React.FormEvent) => {
@@ -59,7 +63,7 @@ const ChatPage: React.FunctionComponent<ChatProps> = () => {
         try {
             if (!isWhitespace(dataToSend.content)) {
                 // Send message to the server
-                await fetch('http://localhost:3333/chat', {
+                const response = await fetch('http://localhost:3333/chat', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -70,6 +74,22 @@ const ChatPage: React.FunctionComponent<ChatProps> = () => {
 
                 // Clear the input field after sending message
                 dispatch(setMessage(''));
+
+                if (!response.ok) {
+                    throw new Error('Failed to fetch messages');
+                }
+
+                const data = await response.json();
+
+                if (!data)
+                    return;
+
+                // Update receivedMessages state with the messages received from the server
+                if (data.username)
+                {
+                    warnUsers();
+                    timer.setIsVisibleTrue(setVisibility);
+                }
             }
 
         } catch (error) {
@@ -90,9 +110,9 @@ const ChatPage: React.FunctionComponent<ChatProps> = () => {
         })
     }
 
-    // const warnUsers = () => {
-    //     setVisibility(true);
-    // }
+    const warnUsers = () => {
+        setVisibility(true);
+    }
 
     const fetchMessagesFromServer = async () => {
         try {
@@ -129,31 +149,6 @@ const ChatPage: React.FunctionComponent<ChatProps> = () => {
             console.error('Error fetching messages:', error);
         }
     }
-
-    // const checkSpamFromServer = async () => {
-    //     try {
-    //         // change accordingly
-    //         const url = 'http://localhost:3333/poll';
-
-    //         const response = await fetch(url, {
-    //             method: 'GET',
-    //             headers: {
-    //                 'Content-Type': 'application/json',
-    //             }
-    //         });
-    //         if (!response.ok) {
-    //             throw new Error('Failed to fetch messages');
-    //         }
-    //         const data = await response.json();
-
-    //         // change accordingly
-    //         if (data.content == "spam")
-    //             warnUsers();
-    //     }
-    //     catch (error) {
-    //         console.error('Error fetching messages:', error);
-    //     }
-    // }
 
     return (
         <div className="container">
