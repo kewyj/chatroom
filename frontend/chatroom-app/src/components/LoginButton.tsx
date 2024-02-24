@@ -48,7 +48,7 @@ const LoginButton = ({ children }: Props) => {
     return (
   <div style={{ position: 'relative', minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
     <div style={{ marginBottom: '20px' }}>
-      <img src="../../public/chatroomLogo.gif" alt="Chatroom Logo" style={{ maxWidth: '1000%', maxHeight: '50vh', position: 'absolute', top: '40%', left: '60%', right: '70%', transform: 'translate(-50%, -50%)' }} />
+      <img src="src/assets/chatroomLogo.gif" alt="Chatroom Logo" style={{ maxWidth: '1000%', maxHeight: '50vh', position: 'absolute', top: '40%', left: '60%', right: '70%', transform: 'translate(-50%, -50%)' }} />
     </div>
     <div>
       <button className='btn btn-primary btn-sx' onClick={handleClick}>
