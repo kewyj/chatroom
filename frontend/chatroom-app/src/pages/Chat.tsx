@@ -34,7 +34,7 @@ const ChatPage: React.FunctionComponent<ChatProps> = () => {
     const message = useSelector((state: AppState) => state.message);
     const [receivedMessages, setReceivedMessages] = useState<Message[]>([]);
     const usernameToSend = userID ? userID.username : '';
-    const [messageLimit, setMessageLimit] = useState<number>(28);
+    const [messageLimit, _setMessageLimit] = useState<number>(28); // added underscore to remove warning
     const [isVisible, setVisibility] = useState<boolean>(false);
 
     useEffect(() => {
