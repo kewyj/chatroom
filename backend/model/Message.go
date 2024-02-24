@@ -1,4 +1,4 @@
-package src
+package model
 
 const MAX_MESSAGES_IN_ROOM = 10
 
@@ -28,6 +28,6 @@ func (q *MessageQueue) Clear() {
 	*q = nil
 }
 
-func (q *MessageQueue) Size() int {
-	return len(*q)
+func (q MessageQueue) Size() int {
+	return len(q)
 }

@@ -1,4 +1,4 @@
-package src
+package limiter
 
 import (
 	"testing"

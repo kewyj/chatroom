@@ -1,4 +1,4 @@
-package src
+package handler
 
 import (
 	"encoding/json"
@@ -6,17 +6,20 @@ import (
 	"io"
 	"io/ioutil"
 	"net/http"
+
+	"github.com/kewyj/chatroom/controller"
+	"github.com/kewyj/chatroom/model"
 )
 
 type Handler struct {
-	controller Controller
+	controller controller.Controller
 }
 
 type NewUserResponse struct {
 	Username string `json:"username"`
 }
 
-func NewHandler(c Controller) *Handler {
+func NewHandler(c controller.Controller) *Handler {
 	return &Handler{
 		controller: c,
 	}
@@ -73,19 +76,19 @@ func (h *Handler) Poll(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Error reading request body", http.StatusInternalServerError)
 		return
 	}
-	messages, err := h.controller.RetrieveUndelivered(msg.Username)
+	messages, err := h.controller.Poll(msg.Username)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
 	// Convert the array of messages to JSON format
-	jsonResponse, err := json.Marshal(*messages)
+	jsonResponse, err := json.Marshal(messages)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	messages.Clear()
+
 	// Set the content type header
 	w.Header().Set("Content-Type", "application/json")
 
@@ -108,15 +111,15 @@ func (h *Handler) Exit(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 }
 
-func unmarshalMessage(rbody io.ReadCloser) (Message, error) {
+func unmarshalMessage(rbody io.ReadCloser) (model.Message, error) {
 	body, err := ioutil.ReadAll(rbody)
 	if err != nil {
-		return Message{}, errors.New("error reading request body")
+		return model.Message{}, errors.New("error reading request body")
 	}
 
-	var msg Message
+	var msg model.Message
 	if err = json.Unmarshal(body, &msg); err != nil {
-		return Message{}, errors.New("error decoding JSON")
+		return model.Message{}, errors.New("error decoding JSON")
 	}
 
 	return msg, nil
