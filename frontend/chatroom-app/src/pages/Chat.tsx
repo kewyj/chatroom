@@ -48,6 +48,10 @@ const ChatPage: React.FunctionComponent<ChatProps> = () => {
         return () => {
             clearInterval(intervalId);
         };
+
+        // const handleBeforeUnload = (event) => {
+        //     await fetch()
+        // }
     }, []);
 
     const send = async (event: React.FormEvent) => {
@@ -170,7 +174,7 @@ const ChatPage: React.FunctionComponent<ChatProps> = () => {
                 )}
             </div>
             <form onSubmit={send}>
-                <input className="form-control" placeholder="Say something..." value={message} onChange={handleInputChange} />
+                <input className="form-control" placeholder="Say something..." value={message} onChange={handleInputChange} disabled={isVisible} />
             </form>
             {isVisible && <div className="spam-message"> 
                 <strong>WARNING : You are spamming!</strong>
