@@ -4,6 +4,8 @@ import AppState from '../store'
 import { useSelector, useDispatch } from 'react-redux';
 import { setMessage } from '../actions'
 import { TimerExample } from '../SpamTimer'
+import { useNavigate } from 'react-router-dom';
+import './styles.css'
 
 export interface ChatProps { }
 
@@ -28,7 +30,6 @@ const isWhitespace = (str: string): boolean => {
 const timer = new TimerExample;
 
 const ChatPage: React.FunctionComponent<ChatProps> = () => {
-
     const dispatch = useDispatch();
     const userID = useSelector((state: AppState) => state.userID);
     const message = useSelector((state: AppState) => state.message);
@@ -36,6 +37,9 @@ const ChatPage: React.FunctionComponent<ChatProps> = () => {
     const usernameToSend = userID ? userID.username : '';
     const [messageLimit, _setMessageLimit] = useState<number>(28); // added underscore to remove warning
     const [isVisible, setVisibility] = useState<boolean>(false);
+
+    // when user comes here check if have userid, dont have, navigate to first page
+    const navigate = useNavigate();
 
     useEffect(() => {
         const handleBeforeUnload = (event: BeforeUnloadEvent) => {
@@ -67,6 +71,13 @@ const ChatPage: React.FunctionComponent<ChatProps> = () => {
         };
 
     }, []);
+
+    // placing usernameToSend and navigate under the [] meant that this useEffect() function will run whenever either usernameToSend or navigate changes
+    useEffect(() => {
+        if (!usernameToSend) {
+            navigate('/');
+        }
+    }, [usernameToSend, navigate]);
 
     const send = async (event: React.FormEvent) => {
         event.preventDefault();
@@ -141,7 +152,6 @@ const ChatPage: React.FunctionComponent<ChatProps> = () => {
         console.log("sending exit to server")
 
         try {
-            console.log("came here")
             await fetch('http://localhost:3333/exit', {
             method: 'DELETE',
             headers: {
@@ -199,7 +209,7 @@ const ChatPage: React.FunctionComponent<ChatProps> = () => {
     }
 
     return (
-        <div className="container">
+        <div>
             <div className="d-flex flex-column align-items-stretch flex-shrink-8 bg-white">
                 <div className="d-flex align-items-center flex-shrink-8 p-3 link-dark text-decoration-none border-bottom">
                     <input className="fs-5 fw-semibold" value={userID?.username?.substring(0, 4) || ''} readOnly />
@@ -207,7 +217,6 @@ const ChatPage: React.FunctionComponent<ChatProps> = () => {
                 {receivedMessages && receivedMessages.length > 0 && (
                     <div className="messages-container">
                         {receivedMessages.map((msg, index) => {
-                            //(msg.content);
                             return (
                                 <div key={index} className="message">
                                     <strong>{msg.username}: </strong>{msg.content}
@@ -217,12 +226,14 @@ const ChatPage: React.FunctionComponent<ChatProps> = () => {
                     </div>
                 )}
             </div>
-            <form onSubmit={send}>
-                <input className="form-control" placeholder="Say something..." value={message} onChange={handleInputChange} disabled={isVisible} />
-            </form>
-            {isVisible && <div className="spam-message"> 
-                <strong>WARNING : You are spamming!</strong>
-            </div>}
+            <div className='inputContainer'>
+                <form onSubmit={send}>
+                    <input className="form-control" placeholder="Say something..." value={message} onChange={handleInputChange} disabled={isVisible} />
+                </form>
+                {isVisible &&
+                    <strong className='warning'>WARNING : You are spamming!</strong>
+                }
+            </div>
         </div>
     )
 }; 

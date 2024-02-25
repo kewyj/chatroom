@@ -1,0 +1,44 @@
+.LoginPage {
+    background-color: #ADD8E6;
+    background-image: url('/src/assets/background.gif');
+    background-size: cover;
+    background-repeat: repeat;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.ChatroomGif {
+    height: 10vh;
+    width: auto;
+}
+
+.loginContainer {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.form-control {
+    position: fixed;
+    height: 40px;
+    margin-top: auto;
+    margin-bottom: 10px;
+}
+
+.messages-container {
+    height: 85vh;
+}
+
+.inputContainer {
+    display: flex;
+    flex-direction: column;
+    margin: 10px;
+    padding: 10px;
+}
+
+.warning {
+    margin-top: 45px;
+}

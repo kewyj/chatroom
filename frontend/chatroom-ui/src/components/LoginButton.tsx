@@ -1,7 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
-import '../styles.css';
-import config from '../../config.json';
+import './styles.css';
+import config from '../config.json';
 import Axios from "axios";
 import { GET_USER_ID } from "../action_types";
 
@@ -37,7 +37,7 @@ const LoginButton = ({ children }: Props) => {
             // Dispatch an action to update the store with new userID
             dispatch({ type: GET_USER_ID, payload: newUserID });
 
-            navigate('/Chat');
+            navigate('/chat');
     
         }
         catch (error) {
@@ -45,16 +45,11 @@ const LoginButton = ({ children }: Props) => {
         }
     };
 
-    return (
-  <div style={{ position: 'relative', minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
-    <div style={{ marginBottom: '20px' }}>
-      <img src="src/assets/chatroomLogo.gif" alt="Chatroom Logo" style={{ maxWidth: '1000%', maxHeight: '50vh', position: 'absolute', top: '40%', left: '60%', right: '70%', transform: 'translate(-50%, -50%)' }} />
-    </div>
-    <div>
-      <button className='btn btn-primary btn-sx' onClick={handleClick}>
-        {children}
-      </button>
-    </div>
+  return (
+  <div>
+    <button className='btn btn-primary btn-sx' onClick={handleClick}>
+      {children}
+    </button>
   </div>
   )
 }

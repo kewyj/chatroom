@@ -1,0 +1,6 @@
+.btn.btn-primary.btn-sx {
+    display: flex;
+    align-items: center;
+    height: 40px;
+    margin-top: 20px;
+}
