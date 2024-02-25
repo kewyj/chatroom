@@ -38,6 +38,23 @@ const ChatPage: React.FunctionComponent<ChatProps> = () => {
     const [isVisible, setVisibility] = useState<boolean>(false);
 
     useEffect(() => {
+        const handleBeforeUnload = (event: BeforeUnloadEvent) => {
+
+            exitToServer();
+
+            const exitConfirmation = 'Leaving so soon? Chat will be lost.';
+            event.returnValue = exitConfirmation;
+            return exitConfirmation;
+        };
+
+        window.addEventListener('beforeunload', handleBeforeUnload);
+
+        return () => {
+            window.removeEventListener('beforeunload', handleBeforeUnload);
+        };
+    }, [usernameToSend]);
+
+    useEffect(() => {
         // Fetch messages from the server and update receivedMessages state
         fetchMessagesFromServer();
 
@@ -49,9 +66,6 @@ const ChatPage: React.FunctionComponent<ChatProps> = () => {
             clearInterval(intervalId);
         };
 
-        // const handleBeforeUnload = (event) => {
-        //     await fetch()
-        // }
     }, []);
 
     const send = async (event: React.FormEvent) => {
@@ -62,7 +76,7 @@ const ChatPage: React.FunctionComponent<ChatProps> = () => {
             content: message
         };
 
-        console.log('Data to send:', dataToSend);
+        //console.log('Data to send:', dataToSend);
 
         try {
             if (!isWhitespace(dataToSend.content)) {
@@ -118,6 +132,36 @@ const ChatPage: React.FunctionComponent<ChatProps> = () => {
         setVisibility(true);
     }
 
+    const exitToServer = async () => {
+
+        const dataToSend = {
+        username: usernameToSend
+        };
+
+        console.log("sending exit to server")
+
+        try {
+            console.log("came here")
+            await fetch('http://localhost:3333/exit', {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(
+                dataToSend)
+            });
+
+            console.log(dataToSend);
+
+            const exitConfirmation = 'Leaving so soon?';
+            return exitConfirmation;
+        }
+        catch (error) {
+            console.error('Error sending message:', error);
+            throw error;
+        }
+    }
+
     const fetchMessagesFromServer = async () => {
         try {
             const url = 'http://localhost:3333/poll';
@@ -163,7 +207,7 @@ const ChatPage: React.FunctionComponent<ChatProps> = () => {
                 {receivedMessages && receivedMessages.length > 0 && (
                     <div className="messages-container">
                         {receivedMessages.map((msg, index) => {
-                            console.log(msg.content);
+                            //(msg.content);
                             return (
                                 <div key={index} className="message">
                                     <strong>{msg.username}: </strong>{msg.content}
