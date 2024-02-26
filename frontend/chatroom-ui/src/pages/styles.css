@@ -22,10 +22,14 @@
 }
 
 .form-control {
-    position: fixed;
     height: 40px;
+    width: 80%;
     margin-top: auto;
     margin-bottom: 10px;
+}
+
+.form-control:focus {
+    background-color: #e0d1e3;
 }
 
 .messages-container {
@@ -40,5 +44,26 @@
 }
 
 .warning {
-    margin-top: 45px;
+    line-height: 0.2;
+    color: red;
+}
+
+.chat-background {
+    background-image: url('/src/assets/chatbackground.gif');
+    background-size: cover;
+    background-repeat: repeat;
+}
+
+.username-glitter {
+    animation: glitter 0.5s infinite alternate;
+}
+
+@keyframes glitter {
+    0% {
+        background-color: mediumorchid;
+    }
+
+    100% {
+        background-color: lavender;
+    }
 }

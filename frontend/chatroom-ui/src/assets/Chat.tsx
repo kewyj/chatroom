@@ -37,7 +37,7 @@ const ChatPage: React.FunctionComponent<ChatProps> = () => {
     const usernameToSend = userID ? userID.username : '';
     const [messageLimit, _setMessageLimit] = useState<number>(32); // added underscore to remove warning
     const [isVisible, setVisibility] = useState<boolean>(false);
-    const [isGlittering, setIsGlittering] = useState<boolean>(true);
+    const [isGlittering, setIsGlittering] = useState<boolean>(false);
 
     // when user comes here check if have userid, dont have, navigate to first page
     const navigate = useNavigate();
@@ -213,8 +213,8 @@ const ChatPage: React.FunctionComponent<ChatProps> = () => {
     return (
         <div className="chat-background">
             <div className="d-flex flex-column align-items-stretch flex-shrink-8">
-                <div className={`d-flex align-items-center flex-shrink-8 p-3 link-dark text-decoration-none border-bottom `}>
-                    <input className={`fs-5 fw-semibold ${isGlittering ? 'username-glitter' : ''}`} style={{ backgroundColor: 'mediumorchid', fontSize: '20px', color: 'brown', fontWeight: 'bold'}} value={userID?.username?.substring(0, 4) || ''} readOnly />
+                <div className={`d-flex align-items-center flex-shrink-8 p-3 link-dark text-decoration-none border-bottom ${isGlittering? 'username-glitter' : ''}`}>
+                    <input className="fs-5 fw-semibold" style={{ backgroundColor: 'mediumorchid', fontSize: '20px', color: 'white' }} value={userID?.username?.substring(0, 4) || ''} readOnly />
                 </div>
                 {receivedMessages && receivedMessages.length > 0 && (
                     <div className="messages-container">
