@@ -35,7 +35,7 @@ const ChatPage: React.FunctionComponent<ChatProps> = () => {
     const message = useSelector((state: AppState) => state.message);
     const [receivedMessages, setReceivedMessages] = useState<Message[]>([]);
     const usernameToSend = userID ? userID.username : '';
-    const [messageLimit, _setMessageLimit] = useState<number>(28); // added underscore to remove warning
+    const [messageLimit, _setMessageLimit] = useState<number>(32); // added underscore to remove warning
     const [isVisible, setVisibility] = useState<boolean>(false);
 
     // when user comes here check if have userid, dont have, navigate to first page
@@ -132,11 +132,11 @@ const ChatPage: React.FunctionComponent<ChatProps> = () => {
     }
 
     const updateReceivedMessages = (data: Message[]) => {
-        setReceivedMessages(prevMessages => {
-            const combinedMessages = [...prevMessages, ...data];
-            const newMessages = combinedMessages.slice(-messageLimit);
-            return newMessages;
-        })
+    setReceivedMessages(prevMessages => {
+        const combinedMessages = [...prevMessages, ...data];
+        const newMessages = combinedMessages.slice(-messageLimit);
+        return newMessages;
+    });
     }
 
     const warnUsers = () => {
