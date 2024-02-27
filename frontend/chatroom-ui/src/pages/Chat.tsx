@@ -42,6 +42,10 @@ const ChatPage: React.FunctionComponent<ChatProps> = () => {
     // when user comes here check if have userid, dont have, navigate to first page
     const navigate = useNavigate();
 
+    // variables for spam feature
+    const [enterKeyCount, setEnterKeyCount] = useState<number>(0);
+    const maxKeyPress = 5; // 4 keypress as limit
+
     useEffect(() => {
         const handleBeforeUnload = (event: BeforeUnloadEvent) => {
 
@@ -80,6 +84,38 @@ const ChatPage: React.FunctionComponent<ChatProps> = () => {
         }
     }, [usernameToSend, navigate]);
 
+    // check for user spam
+    useEffect(() => {
+        // for message spam
+        const timeFrame = 500 // 0.5 sec
+        let timeOutID: NodeJS.Timeout | null = null; // initialized timeOutID and set to null
+
+        const keyDown = (event: KeyboardEvent) => {
+            if (event.key == 'Enter') {
+                setEnterKeyCount((prevCount: number) => prevCount + 1);
+                
+                if (timeOutID) {
+                    clearTimeout(timeOutID);
+                }
+                // setTimeout returns a unique identifier for the timeout
+                timeOutID = setTimeout(() => {
+                    // reset to 0 after every 0.5 sec
+                    setEnterKeyCount(0);
+                }, timeFrame);
+            }
+        };
+
+        document.addEventListener('keydown', keyDown);
+
+        return () => {
+            document.removeEventListener('keydown', keyDown);
+            // clear any exisiting timeout to prevent memory leak
+            if (timeOutID) {
+                clearTimeout(timeOutID);
+            }
+        };
+    }, []);
+
     const send = async (event: React.FormEvent) => {
         event.preventDefault();
 
@@ -106,21 +142,27 @@ const ChatPage: React.FunctionComponent<ChatProps> = () => {
                 dispatch(setMessage(''));
 
                 if (!response.ok) {
-                    throw new Error('Failed to fetch messages');
+                    throw new Error('Failed to fetch response from /chat');
                 }
 
-                const data = await response.json();
+                console.log(enterKeyCount);
 
-                if (!data)
-                    return;
-
-                // Update receivedMessages state with the messages received from the server
-                if (data.username)
-                {
+                if (enterKeyCount > maxKeyPress) {
                     warnUsers();
                     timer.setIsVisibleTrue(setVisibility);
-                    setIsGlittering(true); 
                 }
+
+                // const data = await response.json();
+
+                // if (!data)
+                //     return;
+
+                // // Update receivedMessages state with the messages received from the server
+                // if (data.username)
+                // {
+                //     warnUsers();
+                //     timer.setIsVisibleTrue(setVisibility);
+                // }
             }
 
         } catch (error) {
