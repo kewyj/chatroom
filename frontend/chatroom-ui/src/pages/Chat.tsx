@@ -6,6 +6,7 @@ import { setMessage } from '../actions'
 import { TimerExample } from '../SpamTimer'
 import { useNavigate } from 'react-router-dom';
 import './styles.css'
+import config from '../config.json';
 
 export interface ChatProps { }
 
@@ -57,6 +58,8 @@ const ChatPage: React.FunctionComponent<ChatProps> = () => {
     const [enterKeyCount, setEnterKeyCount] = useState<number>(0);
     const maxKeyPress = 5; // 4 keypress as limit
 
+    // extract host and port form config obj
+    const { host, port } = config.server;
 
     useEffect(() => {
         const handleBeforeUnload = (event: BeforeUnloadEvent) => {
@@ -148,7 +151,7 @@ const ChatPage: React.FunctionComponent<ChatProps> = () => {
         try {
             if (!isWhitespace(dataToSend.content)) {
                 // Send message to the server
-                const response = await fetch('http://localhost:3333/chat', {
+                const response = await fetch(`http://${host}:${port}/chat`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -215,7 +218,7 @@ const ChatPage: React.FunctionComponent<ChatProps> = () => {
         console.log("sending exit to server")
 
         try {
-            await fetch('http://localhost:3333/exit', {
+            await fetch(`http://${host}:${port}/exit`, {
             method: 'DELETE',
             headers: {
                 'Content-Type': 'application/json',
@@ -237,7 +240,7 @@ const ChatPage: React.FunctionComponent<ChatProps> = () => {
 
     const fetchMessagesFromServer = async () => {
         try {
-            const url = 'http://localhost:3333/poll';
+            const url = `http://${host}:${port}/poll`;
     
             const dataforPatch = {
                 username: usernameToSend
