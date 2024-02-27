@@ -14,7 +14,7 @@ const LoginPage: React.FunctionComponent<LoginProps> = () => {
         <div className='LoginPage'>
             <div className='loginContainer'>
                 <img src={chatroomLogo} alt = 'Logo' className = 'ChatroomGif'/>
-                <LoginButton>Log In</LoginButton>
+                <LoginButton> Join Chatroom </LoginButton>
             </div>
         </div>
     );
