@@ -29,6 +29,17 @@ const isWhitespace = (str: string): boolean => {
 
 const timer = new TimerExample;
 
+// to give a color to username
+const predefinedColors = ['BlueViolet', 'DeepPink', 'Coral', 'CornflowerBlue', 'Crimson', 'DarkOrange', 'DodgerBlue', 'Magenta', 'MediumPurple', 'RebeccaPurple', 'DarkSeaGreen', 'MediumSlateBlue', 'OliveDrab'];
+
+// map username to color
+const usernameColors: { [key: string]: string } = {};
+
+const getRandomColor = () => {
+    const randomIndex = Math.floor(Math.random() * predefinedColors.length);
+    return predefinedColors[randomIndex];
+}
+
 const ChatPage: React.FunctionComponent<ChatProps> = () => {
     const dispatch = useDispatch();
     const userID = useSelector((state: AppState) => state.userID);
@@ -45,6 +56,7 @@ const ChatPage: React.FunctionComponent<ChatProps> = () => {
     // variables for spam feature
     const [enterKeyCount, setEnterKeyCount] = useState<number>(0);
     const maxKeyPress = 5; // 4 keypress as limit
+
 
     useEffect(() => {
         const handleBeforeUnload = (event: BeforeUnloadEvent) => {
@@ -83,6 +95,13 @@ const ChatPage: React.FunctionComponent<ChatProps> = () => {
             navigate('/');
         }
     }, [usernameToSend, navigate]);
+    
+    useEffect(() => {
+        if (usernameToSend) {
+            // assign a color to the username for display
+            usernameColors[usernameToSend] = getRandomColor();
+        }
+    }, [usernameToSend]);
 
     // check for user spam
     useEffect(() => {
@@ -256,14 +275,14 @@ const ChatPage: React.FunctionComponent<ChatProps> = () => {
         <div className="chat-background">
             <div className="d-flex flex-column align-items-stretch flex-shrink-8">
                 <div className={`d-flex align-items-center flex-shrink-8 p-3 link-dark text-decoration-none border-bottom `}>
-                    <input className={`fs-5 fw-semibold ${isGlittering ? 'username-glitter' : ''}`} style={{ backgroundColor: 'mediumorchid', fontSize: '20px', color: 'brown', fontWeight: 'bold'}} value={userID?.username?.substring(0, 4) || ''} readOnly />
+                    <input className={`fs-5 fw-semibold ${isGlittering ? 'username-glitter' : ''}`} style={{ backgroundColor: 'mediumorchid', fontSize: '20px', color: usernameColors[usernameToSend] || '#000000', fontWeight: 'bold'}} value={userID?.username?.substring(0, 4) || ''} readOnly />
                 </div>
                 {receivedMessages && receivedMessages.length > 0 && (
                     <div className="messages-container">
                         {receivedMessages.map((msg, index) => {
                             return (
                                 <div key={index} className="message">
-                                    <strong>{msg.username}: </strong>{msg.content}
+                                    <strong style={{ color: msg.username.substring(0, 4) === usernameToSend.substring(0, 4) ? (usernameColors[usernameToSend] || '#000000') : '#000000' }}>{msg.username}: </strong>{msg.content}
                                 </div>
                             );
                         })}
