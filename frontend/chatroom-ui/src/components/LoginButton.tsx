@@ -4,7 +4,7 @@ import './styles.css';
 import config from '../config.json';
 import Axios from "axios";
 import { GET_USER_ID } from "../action_types";
-
+import 'bootstrap/dist/css/bootstrap.min.css';
 // Set action type
 //const GET_NEW_USER_ID = "set_user_id";
 

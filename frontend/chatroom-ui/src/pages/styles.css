@@ -55,15 +55,15 @@
 }
 
 .username-glitter {
-    animation: glitter 0.5s infinite alternate;
+    animation: glitter 0.2s infinite alternate;
 }
 
 @keyframes glitter {
     0% {
-        background-color: mediumorchid;
+        border-color: mediumorchid;
     }
 
     100% {
-        background-color: lavender;
+        border-color: lavender;
     }
 }

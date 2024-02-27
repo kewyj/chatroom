@@ -275,7 +275,7 @@ const ChatPage: React.FunctionComponent<ChatProps> = () => {
         <div className="chat-background">
             <div className="d-flex flex-column align-items-stretch flex-shrink-8">
                 <div className={`d-flex align-items-center flex-shrink-8 p-3 link-dark text-decoration-none border-bottom `}>
-                    <input className={`fs-5 fw-semibold ${isGlittering ? 'username-glitter' : ''}`} style={{ backgroundColor: 'mediumorchid', fontSize: '20px', color: usernameColors[usernameToSend] || '#000000', fontWeight: 'bold'}} value={userID?.username?.substring(0, 4) || ''} readOnly />
+                    <input className={`fs-5 fw-semibold ${isGlittering ? 'username-glitter' : ''}`} style={{ borderColor: 'mediumorchid', fontSize: '20px', color: usernameColors[usernameToSend] || '#000000', fontWeight: 'bold'}} value={userID?.username?.substring(0, 4) || ''} readOnly />
                 </div>
                 {receivedMessages && receivedMessages.length > 0 && (
                     <div className="messages-container">
