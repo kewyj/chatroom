@@ -6,7 +6,6 @@ import { setMessage } from '../actions'
 import { TimerExample } from '../SpamTimer'
 import { useNavigate } from 'react-router-dom';
 import './styles.css'
-import config from '../config.json';
 
 export interface ChatProps { }
 
@@ -59,7 +58,17 @@ const ChatPage: React.FunctionComponent<ChatProps> = () => {
     const maxKeyPress = 5; // 4 keypress as limit
 
     // extract host and port form config obj
-    const { host, port } = config.server;
+    // const [data, setData] = useState<any | null>(null);
+    
+    // useEffect(() => {
+    //     // Fetch and set the JSON data when the component mounts
+    //     fetch(`/config.json`)
+    //     .then(response => response.json())
+    //     .then(jsonData => setData(jsonData.server))
+    //     .catch(error => console.error('Error loading JSON:', error));
+    // }, []);
+    const host = "54.254.57.93"
+    const port = 3333
 
     useEffect(() => {
         const handleBeforeUnload = (event: BeforeUnloadEvent) => {
@@ -256,18 +265,18 @@ const ChatPage: React.FunctionComponent<ChatProps> = () => {
             if (!response.ok) {
                 throw new Error('Failed to fetch messages');
             }
-            const data = await response.json();
+            const json = await response.json();
 
             //console.log(data)
 
             // CHEck if server response was null before calling state change
-            if (!data)
+            if (!json)
                 return;
 
             //console.log(data)
 
             // Update receivedMessages state with the messages received from the server
-            updateReceivedMessages(data);
+            updateReceivedMessages(json);
         }
         catch (error) {
             console.error('Error fetching messages:', error);
