@@ -1,0 +1,25 @@
+=========================================================
+CLIENT TO SERVER COMMS
+
+Get Rooms - none
+
+New User - {"custom_username", "chatroom_id"}
+
+Send Message - {"chatroom_id", "user_uuid", "message"}
+
+Poll - {"chatroom_id"}
+
+Exit - {"chatroom_id", "user_uuid"}
+=========================================================
+SERVER TO CLIENT COMMS
+
+Get Rooms - array of {"chatroom_id, "num_users"}
+
+New User - {"user_uuid"}
+
+Send Message - none
+
+Poll - array of {"custom_username", "message"}
+
+Exit - none
+=========================================================
