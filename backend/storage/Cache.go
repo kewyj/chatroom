@@ -11,105 +11,58 @@ type Cache struct {
 	// map of room name to Chatroom object
 	rooms map[string]model.ChatRoom
 
-	// map of username to user object
-	users map[string]model.User
-
-	// map of username to queue object
-	queues map[string]*model.MessageQueue
-
 	// mutex
 	mu sync.Mutex
 }
 
 func NewCache() *Cache {
 	return &Cache{
-		rooms:  make(map[string]model.ChatRoom),
-		users:  make(map[string]model.User),
-		queues: make(map[string]*model.MessageQueue),
+		rooms: make(map[string]model.ChatRoom),
 	}
 }
 
-func (c *Cache) AddNewChatRoom(cr model.ChatRoom) error {
+func (c *Cache) NewChatRoom(cr model.ChatRoom) error {
 	c.mu.Lock()
 	defer c.mu.Unlock()
+
+	_, ok := c.rooms[cr.ID]
+	if ok {
+		return errors.New("tried to create chatroom that already exists")
+	}
 
 	c.rooms[cr.ID] = cr
 	return nil
 }
 
-func (c *Cache) AddNewUser(user model.User) error {
+func (c *Cache) AddUserToChatRoom(custom_username string, uuid string, chatroom_id string) error {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 
-	room, ok := c.rooms[user.ChatroomID]
+	chatroom, ok := c.rooms[chatroom_id]
 	if !ok {
-		return errors.New("chatroom does not exist")
+		return errors.New("tried to add user to chatroom that does not exist")
 	}
 
-	room.Users = append(room.Users, user.Username)
-	c.rooms[user.ChatroomID] = room
-
-	c.queues[user.Username] = &model.MessageQueue{}
-	c.users[user.Username] = user
-
+	chatroom.Users[uuid] = custom_username
 	return nil
 }
 
-func (c *Cache) AddMessageToUser(userid string, msg model.Message) error {
+func (c *Cache) AddMessageToChatRoom(chatroom_id string, msg model.Message) error {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 
-	queue, ok := c.queues[userid]
+	chatroom, ok := c.rooms[chatroom_id]
 	if !ok {
-		return errors.New("user does not exist")
+		return errors.New("tried to add message to chatroom that does not exist")
 	}
 
-	queue.Enqueue(msg)
-	c.queues[userid] = queue
+	chatroom.Messages = append(chatroom.Messages, msg)
 	return nil
 }
 
-func (c *Cache) GetUser(userid string) (model.User, error) {
-	user, ok := c.users[userid]
-	if !ok {
-		return model.User{}, errors.New("user does not exist")
-	}
-
-	return user, nil
-}
-
-func (c *Cache) GetUsers() ([]model.User, error) {
-	result := make([]model.User, 0, len(c.users))
-
-	for _, val := range c.users {
-		result = append(result, val)
-	}
-
-	return result, nil
-}
-
-func (c *Cache) GetUserQueue(userid string) (model.MessageQueue, error) {
-	queue, ok := c.queues[userid]
-	if !ok {
-		return model.MessageQueue{}, errors.New("user does not exist")
-	}
-
-	result := model.MessageQueue{}
-
-	for _, val := range *queue {
-		result.Enqueue(val)
-	}
-
-	return result, nil
-}
-
-func (c *Cache) GetRoom(roomid string) (model.ChatRoom, error) {
-	room, ok := c.rooms[roomid]
-	if !ok {
-		return model.ChatRoom{}, errors.New("chatroom does not exist")
-	}
-
-	return room, nil
+func (c *Cache) CheckIfRoomExists(chatroom_id string) bool {
+	_, ok := c.rooms[chatroom_id]
+	return ok
 }
 
 func (c *Cache) GetRooms() ([]model.ChatRoom, error) {
@@ -122,62 +75,101 @@ func (c *Cache) GetRooms() ([]model.ChatRoom, error) {
 	return result, nil
 }
 
-func (c *Cache) RemoveUser(userid string) error {
+func (c *Cache) GetUsername(chatroom_id string, uuid string) (string, error) {
+	chatroom, ok := c.rooms[chatroom_id]
+	if !ok {
+		return "", errors.New("tried to get usernames from chatroom that does not exist")
+	}
+
+	username, ok := chatroom.Users[uuid]
+	if !ok {
+		return "", errors.New("tried to get username with uuid that does not exist")
+	}
+
+	return username, nil
+}
+
+func (c *Cache) GetRoomUsernames(chatroom_id string) ([]string, error) {
+	chatroom, ok := c.rooms[chatroom_id]
+	if !ok {
+		return []string{}, errors.New("tried to get usernames from chatroom that does not exist")
+	}
+
+	usernames := make([]string, 0, len(chatroom.Users))
+	for _, username := range chatroom.Users {
+		usernames = append(usernames, username)
+	}
+
+	return usernames, nil
+}
+
+func (c *Cache) GetRoomUserUUIDs(chatroom_id string) ([]string, error) {
+	chatroom, ok := c.rooms[chatroom_id]
+	if !ok {
+		return []string{}, errors.New("tried to get user uuid from chatroom that does not exist")
+	}
+
+	user_uuids := make([]string, 0, len(chatroom.Users))
+	for user_uuid := range chatroom.Users {
+		user_uuids = append(user_uuids, user_uuid)
+	}
+
+	return user_uuids, nil
+}
+
+func (c *Cache) GetRoomMessages(chatroom_id string) ([]model.Message, error) {
+	chatroom, ok := c.rooms[chatroom_id]
+	if !ok {
+		return []model.Message{}, errors.New("tried to get messages from chatroom that does not exist")
+	}
+
+	return chatroom.Messages, nil
+}
+
+func (c *Cache) RemoveEarliestMessage(chatroom_id string) error {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 
-	user, ok := c.users[userid]
+	chatroom, ok := c.rooms[chatroom_id]
 	if !ok {
-		return errors.New("user does not exist")
+		return errors.New("tried to remove message from chatroom that does not exist")
 	}
 
-	delete(c.users, userid)
-	delete(c.queues, userid)
-
-	room, ok := c.rooms[user.ChatroomID]
-	if !ok {
-		return errors.New("room does not exist")
-	}
-
-	index := -1
-	for i, val := range room.Users {
-		if val == userid {
-			index = i
-			break
-		}
-	}
-
-	if index == -1 {
+	if len(chatroom.Messages) == 0 {
 		return nil
 	}
 
-	// remove user from room
-	room.Users = append(room.Users[:index], room.Users[index+1:]...)
-	c.rooms[user.ChatroomID] = room
-
+	chatroom.Messages = chatroom.Messages[1:]
 	return nil
 }
 
-func (c *Cache) RemoveRoom(roomid string) error {
+func (c *Cache) RemoveUserFromChatRoom(uuid string, chatroom_id string) error {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 
-	delete(c.rooms, roomid)
-
-	return nil
-}
-
-func (c *Cache) ClearUserQueue(userid string) error {
-	c.mu.Lock()
-	defer c.mu.Unlock()
-
-	queue, ok := c.queues[userid]
+	chatroom, ok := c.rooms[chatroom_id]
 	if !ok {
-		return errors.New("user does not exist")
+		return errors.New("tried to remove user from chatroom that does not exist")
 	}
 
-	queue.Clear()
-	c.queues[userid] = queue
+	_, ok = chatroom.Users[uuid]
+	if !ok {
+		return errors.New("tried to remove user that does not exist")
+	}
 
+	delete(chatroom.Users, uuid)
+	return nil
+}
+
+func (c *Cache) RemoveRoom(chatroom_id string) error {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+
+	_, ok := c.rooms[chatroom_id]
+	if !ok {
+		return errors.New("tried to remove chatroom that does not exist")
+	}
+
+	delete(c.rooms, chatroom_id)
 	return nil
 }

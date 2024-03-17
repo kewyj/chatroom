@@ -26,6 +26,11 @@ func (l *LambdaHandler) LambdaHandler(ctx context.Context, request events.APIGat
 
 	switch request.RequestContext.HTTP.Path {
 
+	case "/rooms":
+		if request.RequestContext.HTTP.Method == "GET" {
+			return l.Rooms(request)
+		}
+
 	case "/newuser":
 		if request.RequestContext.HTTP.Method == "PUT" {
 			return l.NewUser(request)
@@ -53,16 +58,45 @@ func (l *LambdaHandler) LambdaHandler(ctx context.Context, request events.APIGat
 	return events.APIGatewayV2HTTPResponse{StatusCode: 405}, nil
 }
 
-func (l *LambdaHandler) NewUser(request events.APIGatewayV2HTTPRequest) (events.APIGatewayV2HTTPResponse, error) {
-	log.Println("Handling New User Request")
+func (l *LambdaHandler) Rooms(request events.APIGatewayV2HTTPRequest) (events.APIGatewayV2HTTPResponse, error) {
+	log.Println("Handling Rooms Request")
 
-	uuid, err := l.controller.AddUser()
+	rooms, err := l.controller.GetRooms()
 	if err != nil {
 		return events.APIGatewayV2HTTPResponse{StatusCode: 500}, err
 	}
 
-	uuidResponse := NewUserResponse{
-		Username: &uuid,
+	roomsJSON, err := json.Marshal(rooms)
+	if err != nil {
+		return events.APIGatewayV2HTTPResponse{StatusCode: 500}, err
+	}
+
+	response := events.APIGatewayV2HTTPResponse{
+		StatusCode: 200,
+		Body:       string(roomsJSON),
+		Headers: map[string]string{
+			"Content-Type": "application/json",
+		},
+	}
+
+	return response, nil
+}
+
+func (l *LambdaHandler) NewUser(request events.APIGatewayV2HTTPRequest) (events.APIGatewayV2HTTPResponse, error) {
+	log.Println("Handling New User Request")
+
+	user, err := l.UnmarshalNewUser(request.Body)
+	if err != nil {
+		return events.APIGatewayV2HTTPResponse{StatusCode: 500}, err
+	}
+
+	uuid, err := l.controller.AddUser(user)
+	if err != nil {
+		return events.APIGatewayV2HTTPResponse{StatusCode: 500}, err
+	}
+
+	uuidResponse := model.NewUserResponse{
+		Username: uuid,
 	}
 
 	uuidJSON, err := json.Marshal(uuidResponse)
@@ -84,7 +118,7 @@ func (l *LambdaHandler) NewUser(request events.APIGatewayV2HTTPRequest) (events.
 func (l *LambdaHandler) Chat(request events.APIGatewayV2HTTPRequest) (events.APIGatewayV2HTTPResponse, error) {
 	log.Println("Handling Chat Request")
 
-	msg, err := l.UnmarshalMessage(request.Body)
+	msg, err := l.UnmarshalMessageRequest(request.Body)
 	if err != nil {
 		return events.APIGatewayV2HTTPResponse{StatusCode: 500}, err
 	}
@@ -100,12 +134,12 @@ func (l *LambdaHandler) Chat(request events.APIGatewayV2HTTPRequest) (events.API
 func (l *LambdaHandler) Poll(request events.APIGatewayV2HTTPRequest) (events.APIGatewayV2HTTPResponse, error) {
 	log.Println("Handling Poll Request")
 
-	msg, err := l.UnmarshalMessage(request.Body)
+	pollReq, err := l.UnmarshalPollRequest(request.Body)
 	if err != nil {
 		return events.APIGatewayV2HTTPResponse{StatusCode: 500}, err
 	}
 
-	messages, err := l.controller.Poll(msg.Username)
+	messages, err := l.controller.Poll(pollReq)
 	if err != nil {
 		return events.APIGatewayV2HTTPResponse{StatusCode: 500}, err
 	}
@@ -129,12 +163,12 @@ func (l *LambdaHandler) Poll(request events.APIGatewayV2HTTPRequest) (events.API
 func (l *LambdaHandler) Exit(request events.APIGatewayV2HTTPRequest) (events.APIGatewayV2HTTPResponse, error) {
 	log.Println("Handling Exit Request")
 
-	msg, err := l.UnmarshalMessage(request.Body)
+	msg, err := l.UnmarshalExitRequest(request.Body)
 	if err != nil {
 		return events.APIGatewayV2HTTPResponse{StatusCode: 500}, err
 	}
 
-	err = l.controller.RemoveUser(msg.Username)
+	err = l.controller.RemoveUser(msg)
 	if err != nil {
 		return events.APIGatewayV2HTTPResponse{StatusCode: 500}, err
 	}
@@ -142,16 +176,42 @@ func (l *LambdaHandler) Exit(request events.APIGatewayV2HTTPRequest) (events.API
 	return events.APIGatewayV2HTTPResponse{StatusCode: 200}, nil
 }
 
-func (l *LambdaHandler) UnmarshalMessage(body string) (model.Message, error) {
-	var msg model.Message
+func (l *LambdaHandler) UnmarshalNewUser(body string) (model.NewUserRequest, error) {
+	var user model.NewUserRequest
+	err := json.Unmarshal([]byte(body), &user)
+	if err != nil {
+		return model.NewUserRequest{}, err
+	}
+
+	return user, nil
+}
+
+func (l *LambdaHandler) UnmarshalMessageRequest(body string) (model.MessageRequest, error) {
+	var msg model.MessageRequest
 	err := json.Unmarshal([]byte(body), &msg)
 	if err != nil {
-		return model.Message{}, err
+		return model.MessageRequest{}, err
 	}
 
 	return msg, nil
 }
 
-type NewUserResponse struct {
-	Username *string `json:"username"`
+func (l *LambdaHandler) UnmarshalPollRequest(body string) (model.PollRequest, error) {
+	var msg model.PollRequest
+	err := json.Unmarshal([]byte(body), &msg)
+	if err != nil {
+		return model.PollRequest{}, err
+	}
+
+	return msg, nil
+}
+
+func (l *LambdaHandler) UnmarshalExitRequest(body string) (model.ExitRequest, error) {
+	var msg model.ExitRequest
+	err := json.Unmarshal([]byte(body), &msg)
+	if err != nil {
+		return model.ExitRequest{}, err
+	}
+
+	return msg, nil
 }

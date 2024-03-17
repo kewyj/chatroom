@@ -5,196 +5,171 @@ import (
 	"fmt"
 
 	"github.com/google/uuid"
-	"github.com/kewyj/chatroom/limiter"
 	"github.com/kewyj/chatroom/model"
 	"github.com/kewyj/chatroom/storage"
 )
 
+const MAX_USERS_IN_ROOM = 10
+const MAX_MESSAGES_IN_ROOM = 100
+
 type ChatService struct {
-	storage  storage.Storage
-	limiters map[string]*limiter.RateLimiter
+	storage storage.Storage
 }
 
 func NewChatService() *ChatService {
 	cache := storage.NewCache()
-	for i := 0; i < model.INITIAL_ROOMS; i++ {
-		cache.AddNewChatRoom(model.NewChatRoom())
-	}
 
 	return &ChatService{
-		storage:  cache,
-		limiters: make(map[string]*limiter.RateLimiter),
+		storage: cache,
 	}
 }
 
-func (cs *ChatService) PrintServerStatus() {
-	fmt.Println("QUEUED MESSAGES")
-
-	users, err := cs.storage.GetUsers()
-	if err != nil {
-		fmt.Println("Error getting users: %v", err.Error())
-	}
-
-	for _, user := range users {
-		fmt.Println("USER: " + user.Username[:4])
-
-		queue, err := cs.storage.GetUserQueue(user.Username)
-		if err != nil {
-			fmt.Println("error getting user queue: %v", err)
-			continue
-		}
-
-		for _, msg := range queue {
-			fmt.Println("	FROM: " + msg.Username[:4])
-			fmt.Println("	MESSAGE: " + msg.Content)
-		}
-		fmt.Println("")
-	}
-}
-
-func (cs *ChatService) AddUser() (string, error) {
+func (cs *ChatService) GetRooms() ([]model.GetRoomsResponse, error) {
 	rooms, err := cs.storage.GetRooms()
 	if err != nil {
-		return "", fmt.Errorf("error getting rooms: %w", err)
+		return nil, nil
 	}
 
-	for _, val := range rooms {
-		if len(val.Users) < model.MAX_USERS_IN_ROOM {
-			// found available room
-			name, err := cs.addNewUser(val.ID)
-			if err != nil {
-				return "", fmt.Errorf("error creating user: %w", err)
-			}
+	var responseSlice []model.GetRoomsResponse
 
-			return name, nil
+	for _, room := range rooms {
+		response := model.GetRoomsResponse{
+			RoomID:   room.ID,
+			NumUsers: len(room.Users),
 		}
+		responseSlice = append(responseSlice, response)
 	}
 
-	if len(rooms) >= model.MAX_ROOMS {
-		// did not find available room + num rooms > MAX_ROOMS
-		return "", errors.New("ChatService::AddUser - Rooms are at max capacity")
-	}
-
-	// did not find available room, create new chat room
-	room := model.NewChatRoom()
-	if err := cs.storage.AddNewChatRoom(room); err != nil {
-		return "", fmt.Errorf("error creating chatroom: %w", err)
-	}
-
-	name, err := cs.addNewUser(room.ID)
-	if err != nil {
-		return "", fmt.Errorf("error creating user: %w", err)
-	}
-
-	return name, nil
+	return responseSlice, nil
 }
 
-func (cs *ChatService) addNewUser(roomID string) (string, error) {
-	newUser := model.User{
-		Username:   uuid.New().String(),
-		ChatroomID: roomID,
+func (cs *ChatService) AddUser(user model.NewUserRequest) (string, error) {
+	if !cs.storage.CheckIfRoomExists(user.RoomID) {
+		return "", errors.New("tried to add user to chatroom that does not exist")
 	}
 
-	if err := cs.storage.AddNewUser(newUser); err != nil {
+	users, err := cs.storage.GetRoomUserUUIDs(user.RoomID)
+	if err != nil {
 		return "", err
 	}
 
-	cs.limiters[newUser.Username] = limiter.NewRateLimiter(model.MAX_MESSAGES_PER_SECOND)
-
-	cs.updateSubscribers(roomID, model.Message{".:system:.", newUser.Username[:4] + " has entered the room."})
-
-	return newUser.Username, nil
-}
-
-func (cs *ChatService) SendMessage(msg model.Message) error {
-	user, err := cs.storage.GetUser(msg.Username)
-	if err != nil {
-		return fmt.Errorf("error sending message: %w", err)
+	if len(users) >= MAX_USERS_IN_ROOM {
+		return "", errors.New("chatroom at max capacity")
 	}
 
-	// user exists
-	msg.Username = msg.Username[:4] // shorten display name
+	// chatroom exists and can accomodate new user
+	user_uuid := uuid.New().String()
+	if err := cs.storage.AddUserToChatRoom(user.CustomUsername, user_uuid, user.RoomID); err != nil {
+		return "", err
+	}
 
-	cs.updateSubscribers(user.ChatroomID, msg)
+	// user successfully added
+	cs.sendUserJoinMessage(user)
+
+	cs.printServerStatus()
+
+	return user_uuid, nil
+}
+
+func (cs *ChatService) SendMessage(msg model.MessageRequest) error {
+	if !cs.storage.CheckIfRoomExists(msg.RoomID) {
+		return errors.New("tried to send message to chatroom that does not exist")
+	}
+
+	messages, err := cs.storage.GetRoomMessages(msg.RoomID)
+	if err != nil {
+		return err
+	}
+
+	if len(messages) > MAX_MESSAGES_IN_ROOM {
+		cs.storage.RemoveEarliestMessage(msg.RoomID)
+	}
+
+	username, err := cs.storage.GetUsername(msg.RoomID, msg.Username)
+	if err != nil {
+		return err
+	}
+
+	cs.storage.AddMessageToChatRoom(msg.RoomID, model.Message{
+		Username: username,
+		Content:  msg.Content,
+	})
+
+	cs.printServerStatus()
 
 	return nil
 }
 
-func (cs *ChatService) updateSubscribers(roomid string, msg model.Message) {
-	room, err := cs.storage.GetRoom(roomid)
+func (cs *ChatService) Poll(req model.PollRequest) ([]model.Message, error) {
+	messages, err := cs.storage.GetRoomMessages(req.RoomID)
 	if err != nil {
-		fmt.Println("error getting room for update subscriber: %v", err)
-		return
+		return []model.Message{}, err
 	}
 
-	for _, user := range room.Users {
-		if err := cs.storage.AddMessageToUser(user, msg); err != nil {
-			fmt.Println("error updating user for update subscriber - %v: %v", user, err)
-		}
-	}
-	
-	cs.PrintServerStatus()
+	return messages, nil
 }
 
-func (cs *ChatService) Poll(userid string) (model.MessageQueue, error) {
-	queue, err := cs.storage.GetUserQueue(userid)
+func (cs *ChatService) RemoveUser(req model.ExitRequest) error {
+	if !cs.storage.CheckIfRoomExists(req.RoomID) {
+		return errors.New("tried to send message to chatroom that does not exist")
+	}
+
+	user, err := cs.storage.GetUsername(req.RoomID, req.Username)
 	if err != nil {
-		return model.MessageQueue{}, fmt.Errorf("error getting user queue: %w", err)
+		return err
 	}
 
-	if err := cs.storage.ClearUserQueue(userid); err != nil {
-		return model.MessageQueue{}, fmt.Errorf("error clearing user queue: %w", err)
-	}
+	cs.storage.RemoveUserFromChatRoom(req.Username, req.RoomID)
 
-	return queue, nil
-}
-
-func (cs *ChatService) RemoveUser(userid string) error {
-	user, err := cs.storage.GetUser(userid)
+	users, err := cs.storage.GetRoomUsernames(req.RoomID)
 	if err != nil {
-		return fmt.Errorf("error getting user: %w", err)
+		return err
 	}
 
-	if err := cs.storage.RemoveUser(userid); err != nil {
-		return fmt.Errorf("error removing user: %w", err)
+	if len(users) == 0 {
+		// room empty, delete
+		cs.storage.RemoveRoom(req.RoomID)
+	} else {
+		cs.sendUserExitMessage(model.ExitRequest{
+			RoomID:   req.RoomID,
+			Username: user,
+		})
 	}
 
-	_, ok := cs.limiters[userid]
-	if ok {
-		cs.limiters[userid].Destroy()
-		delete(cs.limiters, userid)
-	}
-
-	room, err := cs.storage.GetRoom(user.ChatroomID)
-	if err != nil {
-		return fmt.Errorf("error getting room: %w", err)
-	}
-
-	if len(room.Users) == 0 {
-		err := cs.storage.RemoveRoom(room.ID)
-		if err != nil {
-			return fmt.Errorf("error removing room: %w", err)
-		}
-
-		return nil
-	}
-
-	cs.updateSubscribers(room.ID, model.Message{".:system:.", userid[:4] + " has left the room."})
+	cs.printServerStatus()
 
 	return nil
 }
 
-func (cs *ChatService) IsUserSpamming(userid string) bool {
-	_, ok := cs.limiters[userid]
-	if !ok {
-		fmt.Println("user not found in is spamming")
-		return true
-	}
+func (cs *ChatService) sendUserJoinMessage(user model.NewUserRequest) {
+	cs.storage.AddMessageToChatRoom(user.CustomUsername, model.Message{
+		Username: ".:system:.",
+		Content:  user.CustomUsername + " has joined the chat.",
+	})
+}
 
-	select {
-	case <-cs.limiters[userid].TokenBucket:
-		return false
-	default:
-		return true
+func (cs *ChatService) sendUserExitMessage(user model.ExitRequest) {
+	cs.storage.AddMessageToChatRoom(user.RoomID, model.Message{
+		Username: ".:system:.",
+		Content:  user.Username + " has left the chat.",
+	})
+}
+
+func (cs *ChatService) printServerStatus() {
+	rooms, _ := cs.storage.GetRooms()
+
+	for _, val := range rooms {
+		fmt.Println("ROOM: " + val.ID)
+
+		fmt.Println("\tUsers:")
+		for _, user := range val.Users {
+			fmt.Println("\t\t" + user)
+		}
+
+		fmt.Println("\tMessages:")
+		for _, msg := range val.Messages {
+			fmt.Println("\t\t" + msg.Username)
+			fmt.Println("\t\t\t" + msg.Content)
+		}
 	}
 }

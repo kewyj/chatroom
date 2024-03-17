@@ -1,18 +1,16 @@
 package main
 
 import (
+	"github.com/aws/aws-lambda-go/lambda"
+	"github.com/kewyj/chatroom/controller"
+	"github.com/kewyj/chatroom/handler"
 	// "errors"
 	// "fmt"
 	// "net/http"
 	// "os"
-
 	//"github.com/gorilla/mux"
-	"github.com/kewyj/chatroom/controller"
-	"github.com/kewyj/chatroom/handler"
-
 	//"github.com/rs/cors"
 	//"github.com/aws/aws-lambda-go/events"
-	"github.com/aws/aws-lambda-go/lambda"
 )
 
 func main() {
