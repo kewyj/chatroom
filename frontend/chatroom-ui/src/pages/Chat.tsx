@@ -94,24 +94,14 @@ const ChatPage: React.FunctionComponent<ChatProps> = () => {
     const history = createBrowserHistory();
     const location = useLocation();
 
-    console.log(usernameToSend);
-    //console.log(location);
-
     useEffect(() => {
         const handlePop = (update: Update) => {
-            console.log(isOnce)
-            console.log(usernameToSend)
-            if (usernameToSend != '' && update.action === 'POP') {
-                console.log("POP triggered");
-                console.log(usernameToSend)
+            if (usernameToSend == userID?.username && update.action === 'POP') {
                     if (window.confirm("Leaving so soon? Chat data will be lost.")) {
-                        //console.log("before exitToServer");
                         SetIsOnce(true);
                         exitToServer();
                     }
                     else {
-                        //console.log("came into cancel")
-                        //console.log(usernameToSend)
                         SetIsOnce(false);
                         history.back();
                     }
@@ -331,6 +321,7 @@ const ChatPage: React.FunctionComponent<ChatProps> = () => {
             console.log(dataToSend);
 
             const exitConfirmation = 'Leaving so soon?';
+            window.location.reload();
             return exitConfirmation;
         }
         catch (error) {
