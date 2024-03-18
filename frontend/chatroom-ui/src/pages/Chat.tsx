@@ -4,8 +4,10 @@ import AppState from '../store'
 import { useSelector, useDispatch } from 'react-redux';
 import { setMessage } from '../actions'
 import { TimerExample } from '../SpamTimer'
-import { useNavigate } from 'react-router-dom';
+import { unstable_useViewTransitionState, useNavigate } from 'react-router-dom';
+import { useLocation } from 'react-router-dom';
 import './styles.css'
+import { createBrowserHistory, Update } from 'history';
 
 export interface ChatProps { }
 
@@ -49,9 +51,11 @@ const ChatPage: React.FunctionComponent<ChatProps> = () => {
     const [messageLimit, _setMessageLimit] = useState<number>(32); // added underscore to remove warning
     const [isVisible, setVisibility] = useState<boolean>(false);
     const [isGlittering, setIsGlittering] = useState<boolean>(true);
+    const [isOnce, SetIsOnce] = useState<boolean>(false);
 
     // when user comes here check if have userid, dont have, navigate to first page
     const navigate = useNavigate();
+
 
     // variables for spam feature
     const [enterKeyCount, setEnterKeyCount] = useState<number>(0);
@@ -67,7 +71,7 @@ const ChatPage: React.FunctionComponent<ChatProps> = () => {
     //     .then(jsonData => setData(jsonData.server))
     //     .catch(error => console.error('Error loading JSON:', error));
     // }, []);
-    const host = "54.254.57.93"
+    const host = "localhost"
     const port = 3333
 
     useEffect(() => {
@@ -86,6 +90,92 @@ const ChatPage: React.FunctionComponent<ChatProps> = () => {
             window.removeEventListener('beforeunload', handleBeforeUnload);
         };
     }, [usernameToSend]);
+
+    const history = createBrowserHistory();
+    const location = useLocation();
+
+    console.log(usernameToSend);
+    //console.log(location);
+
+    useEffect(() => {
+        const handlePop = (update: Update) => {
+            console.log(isOnce)
+            console.log(usernameToSend)
+            if (usernameToSend != '' && update.action === 'POP') {
+                console.log("POP triggered");
+                console.log(usernameToSend)
+                    if (window.confirm("Leaving so soon? Chat data will be lost.")) {
+                        //console.log("before exitToServer");
+                        SetIsOnce(true);
+                        exitToServer();
+                    }
+                    else {
+                        //console.log("came into cancel")
+                        //console.log(usernameToSend)
+                        SetIsOnce(false);
+                        history.back();
+                    }
+            }
+        };
+        if (!isOnce) {
+            history.listen(handlePop);
+        }
+
+    }, [usernameToSend]);
+    
+
+    // useEffect(() => {
+    //     console.log("Popstateevent useEffect called");
+
+    //     let confirmedLeave = false;
+
+    //     const handlePopState = (event: PopStateEvent) => {
+    //         console.log("Popstateevent occurred");
+
+    //         if (!confirmedLeave) {
+    //             const exitConfirmation = 'Leaving so soon? Chat will be lost.';
+    //             const shouldExit = window.confirm(exitConfirmation);
+
+    //             if (!shouldExit) {
+    //                 // Prevent leaving the page
+    //                 event.preventDefault();
+    //                 // Restore the URL to the current one
+    //                 window.history.pushState(null, document.title, window.location.href);
+    //             } else {
+    //                 confirmedLeave = true; // Mark as confirmed
+    //                 exitToServer(); // Perform exit action
+    //             }
+    //         }
+    //     };
+        
+    //     window.addEventListener('popstate', handlePopState);
+    //     console.log("Attached event");
+
+    //     return () => {
+    //         console.log("popstate event cleanup called");
+    //         window.removeEventListener('popstate', handlePopState);
+    //     };
+    // }, [usernameToSend]);
+
+    // if (window.history.length === 1 && window.location.pathname === '/') {
+    //     console.log("Empty thats why cnnt work la cb")
+    // }
+    // else {
+    //     console.log(window.history.length);
+    // }
+
+    // const location = useLocation();
+
+    // useEffect(() => {
+    //     const historyStack = [];
+    //     for (let i = 0; i < window.history.length; i++) {
+    //     const entry = window.history.state[i];
+    //     if (entry && entry.location) {
+    //         historyStack.push(entry.location.pathname);
+    //     }
+    //     }
+    //     console.log('History stack:', historyStack);
+    // }, [location]);
 
     useEffect(() => {
         // Fetch messages from the server and update receivedMessages state
@@ -227,7 +317,7 @@ const ChatPage: React.FunctionComponent<ChatProps> = () => {
         console.log("sending exit to server")
 
         try {
-            await fetch(`http://${host}:${port}/exit`, {
+            fetch(`http://${host}:${port}/exit`, {
             method: 'DELETE',
             headers: {
                 'Content-Type': 'application/json',
@@ -235,6 +325,8 @@ const ChatPage: React.FunctionComponent<ChatProps> = () => {
             body: JSON.stringify(
                 dataToSend)
             });
+
+            dispatch({ type: 'RESET_USER_ID' });
 
             console.log(dataToSend);
 

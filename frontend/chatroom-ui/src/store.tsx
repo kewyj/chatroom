@@ -1,6 +1,7 @@
 import { createStore } from 'redux';
 import { SET_MESSAGE } from './action_types';
 import { GET_USER_ID } from './action_types';
+import { RESET_USER_ID } from './action_types';
 
 // Define an interface for the action
 interface Action {
@@ -18,6 +19,8 @@ function reducer(state = initialState, action : Action) {
   switch (action.type) {
     case GET_USER_ID:
       return { ...state, userID: action.payload };
+    case RESET_USER_ID:
+      return { ...state, userID: null };
     case SET_MESSAGE:
       return { ...state, message: action.payload };
     default:
