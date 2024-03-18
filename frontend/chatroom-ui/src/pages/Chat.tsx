@@ -52,6 +52,7 @@ const ChatPage: React.FunctionComponent<ChatProps> = () => {
     const [isVisible, setVisibility] = useState<boolean>(false);
     const [isGlittering, setIsGlittering] = useState<boolean>(true);
     const [isOnce, SetIsOnce] = useState<boolean>(false);
+    const [isReload, SetIsReload] = useState<boolean>(false);
 
     // when user comes here check if have userid, dont have, navigate to first page
     const navigate = useNavigate();
@@ -76,7 +77,7 @@ const ChatPage: React.FunctionComponent<ChatProps> = () => {
 
     useEffect(() => {
         const handleBeforeUnload = (event: BeforeUnloadEvent) => {
-
+            event.preventDefault();
             exitToServer();
 
             const exitConfirmation = 'Leaving so soon? Chat will be lost.';
@@ -94,22 +95,44 @@ const ChatPage: React.FunctionComponent<ChatProps> = () => {
     const history = createBrowserHistory();
     const location = useLocation();
 
+    console.log(window.location.href);
+
     useEffect(() => {
+        let allowNavigation = true;
         const handlePop = (update: Update) => {
-            if (usernameToSend == userID?.username && update.action === 'POP') {
-                    if (window.confirm("Leaving so soon? Chat data will be lost.")) {
-                        SetIsOnce(true);
-                        exitToServer();
+            if (allowNavigation && usernameToSend == userID?.username && update.action === 'POP') {
+                if (window.confirm("Leaving so soon? Chat data will be lost.")) {
+                    SetIsOnce(true);
+                    exitToServer();
+                }
+                else {
+                    SetIsOnce(false);
+                    console.log("came");
+                    if (!isReload) {
+                        //history.replace('/chat');
+                        history.forward();
+                        SetIsReload(true);
                     }
-                    else {
-                        SetIsOnce(false);
-                        history.back();
+                    //history.push('/chat');
                     }
+                allowNavigation = false;
             }
         };
+
+        const handleWindowPopState = (event: PopStateEvent) => {
+            if (!allowNavigation) {
+                history.push('/chat')
+            }
+        };
+
         if (!isOnce) {
             history.listen(handlePop);
+            window.onpopstate = handleWindowPopState;
         }
+
+        return () => {
+            window.onpopstate = null; // Cleanup event handler
+        };
 
     }, [usernameToSend]);
     
@@ -316,12 +339,11 @@ const ChatPage: React.FunctionComponent<ChatProps> = () => {
                 dataToSend)
             });
 
-            dispatch({ type: 'RESET_USER_ID' });
-
             console.log(dataToSend);
-
+                        
             const exitConfirmation = 'Leaving so soon?';
-            window.location.reload();
+            dispatch({ type: 'RESET_USER_ID' });
+            //window.location.reload();
             return exitConfirmation;
         }
         catch (error) {
