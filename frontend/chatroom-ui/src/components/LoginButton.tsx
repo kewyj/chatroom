@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import './styles.css';
@@ -5,6 +6,8 @@ import config from '../config.json';
 import Axios from "axios";
 import { GET_USER_ID } from "../action_types";
 import 'bootstrap/dist/css/bootstrap.min.css';
+import { setUsername } from '../actions';
+import React from "react";
 // Set action type
 //const GET_NEW_USER_ID = "set_user_id";
 
@@ -18,35 +21,51 @@ interface Props {
 }
 
 const LoginButton = ({ children }: Props) => {
-
-    const navigate = useNavigate();
-    const dispatch = useDispatch();
+  const [username, setUsernameState] = useState("");
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
+  
+  const handleUsernameChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setUsernameState(event.target.value);
+  }
 
     const handleClick = async () => {
-        try {
-            // to get userID
-            const serverHost = config.server.host;
-            const serverPort = config.server.port;
-            const path = "/newuser";
-            const url = `http://${serverHost}:${serverPort}${path}`;
-            
-            // PUT request to server
-            const response = await Axios.put(url);
-            const newUserID = response.data;
-
-            // Dispatch an action to update the store with new userID
-            dispatch({ type: GET_USER_ID, payload: newUserID });
-
-            navigate('/chat');
-    
+      try {
+        if (!username.trim()) {
+          alert("Please enter a username.");
+          return;
         }
-        catch (error) {
-            console.error("Error fetching data:", error);
-        }
+        // to get userID
+        const serverHost = config.server.host;
+        const serverPort = config.server.port;
+        const path = "/newuser";
+        const url = `http://${serverHost}:${serverPort}${path}`;
+        
+        // PUT request to server
+        const response = await Axios.put(url);
+        const newUserID = response.data;
+
+        // Dispatch an action to update the store with new userID
+        dispatch({ type: GET_USER_ID, payload: newUserID });
+        dispatch(setUsername(username));
+
+        navigate('/chat');
+  
+      }
+      catch (error) {
+          console.error("Error fetching data:", error);
+      }
     };
 
   return (
-  <div>
+    <div className='parent-container'>
+      <input 
+      type="text"
+      placeholder="Enter your username"
+      className="form-control-input"
+      value={username}
+      onChange={handleUsernameChange}
+      />
     <button className='btn btn-primary btn-sx' onClick={handleClick}>
       {children}
     </button>

@@ -77,7 +77,6 @@ const ChatPage: React.FunctionComponent<ChatProps> = () => {
 
     useEffect(() => {
         const handleBeforeUnload = (event: BeforeUnloadEvent) => {
-            event.preventDefault();
             exitToServer();
 
             const exitConfirmation = 'Leaving so soon? Chat will be lost.';
@@ -342,7 +341,7 @@ const ChatPage: React.FunctionComponent<ChatProps> = () => {
             console.log(dataToSend);
                         
             const exitConfirmation = 'Leaving so soon?';
-            dispatch({ type: 'RESET_USER_ID' });
+            dispatch({ type: 'RESET_USER' });
             //window.location.reload();
             return exitConfirmation;
         }
