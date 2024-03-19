@@ -1,6 +1,6 @@
 import React from 'react';
 import LoginButton from '.././components/LoginButton';
-import './styles.css'
+import '../styles/login.css'
 import chatroomLogo from '../assets/chatroomLogo.gif';
 
 export interface LoginProps { }

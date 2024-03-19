@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
-import './styles.css';
+import '../styles/components/loginButton.css'
 import config from '../config.json';
 import Axios from "axios";
 import { GET_USER_ID } from "../action_types";
@@ -49,7 +49,7 @@ const LoginButton = ({ children }: Props) => {
         dispatch({ type: GET_USER_ID, payload: newUserID });
         dispatch(setUsername(username));
 
-        navigate('/chat');
+        navigate('/rooms');
   
       }
       catch (error) {

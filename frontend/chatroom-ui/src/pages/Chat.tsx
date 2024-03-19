@@ -6,7 +6,7 @@ import { setMessage } from '../actions'
 import { TimerExample } from '../SpamTimer'
 import { unstable_useViewTransitionState, useNavigate } from 'react-router-dom';
 import { useLocation } from 'react-router-dom';
-import './styles.css'
+import '../styles/chat.css'
 import { createBrowserHistory, Update } from 'history';
 
 export interface ChatProps { }
