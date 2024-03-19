@@ -1,69 +1,45 @@
-.LoginPage {
-    background-color: #ADD8E6;
+.room_background {
     background-image: url('/src/assets/background.gif');
-    background-size: 100%;
-    background-repeat: repeat;
-    height: 100vh;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
-
-.ChatroomGif {
-    height: 12vh;
-    width: auto;
-}
-
-.loginContainer {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-}
-
-.form-control {
-    height: 40px;
-    width: 80%;
-    margin-top: auto;
-    margin-bottom: 10px;
-}
-
-.form-control:focus {
-    background-color: #e0d1e3;
-}
-
-.messages-container {
-    height: 85vh;
-}
-
-.inputContainer {
-    display: flex;
-    flex-direction: column;
-    margin: 10px;
-    padding: 10px;
-}
-
-.warning {
-    line-height: 0.2;
-    color: red;
-}
-
-.chat-background {
-    background-image: url('/src/assets/chatbackground.gif');
     background-size: cover;
     background-repeat: repeat;
 }
 
-.username-glitter {
-    animation: glitter 0.2s infinite alternate;
+main {
+    height:100vh;
+    /*font-family:Cambria, Cochin, Georgia, Times, 'Times New Roman', serif;*/
+    font-family:'Courier New', Courier, monospace;
 }
 
-@keyframes glitter {
-    0% {
-        border-color: mediumorchid;
-    }
+section {
+    padding:30px 10vw;
+}
 
-    100% {
-        border-color: lavender;
-    }
+section:first-child {
+    padding-top:100px;
+}
+
+section:first-child p {
+    margin:0;
+    padding-top:5px;
+    padding-right:20px;
+}
+
+input {
+    padding:2px 5px;
+    background-color:rgb(224, 224, 224);
+}
+
+#clock {
+    margin-bottom:10px;
+}
+
+#clock p {
+    font-weight:normal;
+    color:lightgrey;
+    padding:0px;
+}
+
+#greetings p {
+    font-weight:bold;
+    color:white;
 }

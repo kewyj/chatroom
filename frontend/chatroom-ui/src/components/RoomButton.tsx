@@ -8,7 +8,7 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import { setUsername } from '../actions';
 import React from "react";
 
-import '../styles/components/chatroom.css'
+import '../styles/components/roomButton.css'
 
 interface Props {
   children: {
@@ -17,7 +17,7 @@ interface Props {
   }
 }
 
-const ChatRoom = ({ children : { title, users }}: Props) => {
+const RoomButton = ({ children : { title, users }}: Props) => {
   const [username, setUsernameState] = useState("");
   const navigate = useNavigate();
   const dispatch = useDispatch();
@@ -28,10 +28,6 @@ const ChatRoom = ({ children : { title, users }}: Props) => {
 
   const handleClick = async () => {
     try {
-      if (!username.trim()) {
-        alert("Please enter a username.");
-        return;
-      }
       // to get userID
       const serverHost = config.server.host;
       const serverPort = config.server.port;
@@ -54,7 +50,7 @@ const ChatRoom = ({ children : { title, users }}: Props) => {
   };
 
   return (
-    <button className='btn btn-primary btn-sx' onClick={handleClick}>
+    <button className='' onClick={handleClick}>
       <div>
         <h4>{title}</h4>
         <p>{users} active users</p>
@@ -63,4 +59,4 @@ const ChatRoom = ({ children : { title, users }}: Props) => {
   )
 }
 
-export default ChatRoom
+export default RoomButton

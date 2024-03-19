@@ -5,7 +5,7 @@ import { useSelector, useDispatch } from 'react-redux';
 import { setMessage } from '../actions'
 import { TimerExample } from '../SpamTimer'
 import { unstable_useViewTransitionState, useNavigate } from 'react-router-dom';
-import ChatRoom from '../components/ChatRoom';
+import RoomButton from '../components/RoomButton';
 import { useLocation } from 'react-router-dom';
 import '../styles/roomlist.css'
 import { createBrowserHistory, Update } from 'history';
@@ -18,6 +18,11 @@ interface AppState {
     username: string;
     } | null;
   message: string;
+}
+
+interface HomeClock {
+  date: string;
+  time: string;
 }
 
 // Define the type for Message
@@ -47,7 +52,7 @@ const RoomListPage: React.FunctionComponent<ChatProps> = () => {
     const dispatch = useDispatch();
     const userID = useSelector((state: AppState) => state.userID);
     const usernameToSend = userID ? userID.username : '';
-    const [isGlittering, setIsGlittering] = useState<boolean>(true);
+    const [currentClock, setClock] = useState<HomeClock>();
 
     // when user comes here check if have userid, dont have, navigate to first page
     const navigate = useNavigate();
@@ -69,24 +74,59 @@ const RoomListPage: React.FunctionComponent<ChatProps> = () => {
         }
     }, [usernameToSend]);
 
+    const updateClock = (data: HomeClock) => {
+        setClock(prev => {
+            return data;
+        });
+    }
+
+    const getTime = async () => {
+        try {
+            var today = new Date();
+            var homeClock: HomeClock = {
+                date: today.getFullYear() + '-' + (today.getMonth() + 1) + '-' + today.getDate(),
+                time: today.getHours() + ":" + today.getMinutes() + ":" + today.getSeconds()
+            };
+            updateClock(homeClock);
+        }
+        catch (error) {
+            console.error('Error fetching messages:', error);
+        }
+    }
+
+    useEffect(() => {
+        getTime();
+
+        // Make interval every 1 sec
+        const intervalId = setInterval(getTime, 1000);
+
+        // Clear interval
+        return () => {
+            clearInterval(intervalId);
+        };
+    }, []);
+
     return (
-        <main className="chat-background">
-            <section>
-                <div>
-                    <p>Hello, <input className={`fs-5 fw-semibold ${isGlittering ? 'username-glitter' : ''}`} style={{ borderColor: 'mediumorchid', fontSize: '20px', color: usernameColors[usernameToSend] || '#000000', fontWeight: 'bold'}} value={userID?.username || ''} readOnly /></p>
+        <main className="room_background">
+            <section className="container">
+                <div className="row p-3" id="clock">
+                    <div className="col-lg-4">
+                        <p>{currentClock?.date}</p>
+                        <p>{currentClock?.time}</p>
+                    </div>
+                </div>
+                <div className="row p-3" id="greetings">
+                    <div className="col-lg-4 d-flex">
+                        <p>Hello, {userID?.username?.substring(0, 10) || ''}{(userID?.username && userID?.username?.length > 10) ? "..." : ""}</p>
+                    </div>
                 </div>
             </section>
-            <section>
-                <ChatRoom>{{title: "Chatroom Name 1", users: 120}}</ChatRoom>
-                <ChatRoom>{{title: "Chatroom Name 2", users: 30}}</ChatRoom>
-                <ChatRoom>{{title: "Chatroom Name 3", users: 12}}</ChatRoom>
-                <ChatRoom>{{title: "Chatroom Name 4", users: 8}}</ChatRoom>
+            <section className="d-flex flex-column align-items-stretch flex-shrink-8">
+                <RoomButton>{{title: "Chatroom Name 1", users: 120}}</RoomButton>
+                <RoomButton>{{title: "Chatroom Name 2", users: 30}}</RoomButton>
+                <RoomButton>{{title: "Chatroom Name 3", users: 12}}</RoomButton>
+                <RoomButton>{{title: "Chatroom Name 4", users: 8}}</RoomButton>
             </section>
-            <div className="d-flex flex-column align-items-stretch flex-shrink-8">
-                <div className={`d-flex align-items-center flex-shrink-8 p-3 link-dark text-decoration-none border-bottom `}>
-                    <input className={`fs-5 fw-semibold ${isGlittering ? 'username-glitter' : ''}`} style={{ borderColor: 'mediumorchid', fontSize: '20px', color: usernameColors[usernameToSend] || '#000000', fontWeight: 'bold'}} value={userID?.username?.substring(0, 4) || ''} readOnly />
-                </div>
-            </div>
         </main>
     )
 }; 
