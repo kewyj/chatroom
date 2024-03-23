@@ -1,0 +1,9 @@
+button#create_new {
+    background-color:rgb(108, 26, 26);
+    font-weight:bold;
+    padding:2px 14px;
+}
+
+button#create_new:hover {
+    background-color:rgb(85, 16, 16);
+}

@@ -9,17 +9,13 @@ import { setUsername } from '../actions';
 import config from '../config.json';
 
 import 'bootstrap/dist/css/bootstrap.min.css';
-import '../styles/components/roomButton.css'
+import '../styles/components/createRoomButton.css'
 
 interface Props {
-  children: {
-    id: number;
-    title: string;
-    users: number;
-  }
+  children: string;
 }
 
-const RoomButton = ({ children : { id, title, users }}: Props) => {
+const CreateRoomButton = ({ children }: Props) => {
   const [username, setUsernameState] = useState("");
   const navigate = useNavigate();
   const dispatch = useDispatch();
@@ -52,14 +48,10 @@ const RoomButton = ({ children : { id, title, users }}: Props) => {
   };
 
   return (
-    <button className="enter_room" onClick={handleClick}>
-      <div>
-        <caption>Chapter {id}</caption>
-        <h4>{title}</h4>
-        <p>{users} active users</p>
-      </div>
+    <button id="create_new" onClick={handleClick}>
+      {children}
     </button>
   )
 }
 
-export default RoomButton
+export default CreateRoomButton

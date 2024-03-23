@@ -1,9 +1,10 @@
+import store from './store';
+import { Provider } from 'react-redux';
+import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+
 import LoginPage from './pages/Login';
 import ChatPage from './pages/Chat';
 import RoomListPage from './pages/RoomList';
-import { Provider } from 'react-redux';
-import store from './store';
-import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 
 function App() {
   return (

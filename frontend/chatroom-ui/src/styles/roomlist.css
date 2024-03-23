@@ -1,3 +1,7 @@
+html, body, main, #root {
+    height:100%;
+}
+
 .room_background {
     background-image: url('/src/assets/background.gif');
     background-size: cover;
@@ -5,17 +9,16 @@
 }
 
 main {
-    height:100vh;
     /*font-family:Cambria, Cochin, Georgia, Times, 'Times New Roman', serif;*/
     font-family:'Courier New', Courier, monospace;
 }
 
-section {
-    padding:30px 10vw;
-}
-
 section:first-child {
     padding-top:100px;
+}
+
+section:last-child {
+    padding-bottom:5vh;
 }
 
 section:first-child p {
@@ -42,4 +45,21 @@ input {
 #greetings p {
     font-weight:bold;
     color:white;
+}
+
+#rooms_list {
+    overflow-y:scroll;
+    max-height:50vh;
+    padding-top:0px !important;
+}
+
+/* Hide scrollbar for Chrome, Safari and Opera */
+#rooms_list::-webkit-scrollbar {
+    display:none;
+}
+  
+/* Hide scrollbar for IE, Edge and Firefox */
+#rooms_list {
+    -ms-overflow-style:none;  /* IE and Edge */
+    scrollbar-width:none;  /* Firefox */
 }

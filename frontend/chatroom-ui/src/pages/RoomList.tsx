@@ -1,14 +1,15 @@
 import React, {useEffect, useState} from 'react';
-import "@fortawesome/fontawesome-free/css/all.css";
-import AppState from '../store'
 import { useSelector, useDispatch } from 'react-redux';
-import { setMessage } from '../actions'
 import { TimerExample } from '../SpamTimer'
-import { unstable_useViewTransitionState, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
+
+import AppState from '../store';
+
 import RoomButton from '../components/RoomButton';
-import { useLocation } from 'react-router-dom';
-import '../styles/roomlist.css'
-import { createBrowserHistory, Update } from 'history';
+import CreateRoomButton from '../components/CreateRoomButton';
+
+import "@fortawesome/fontawesome-free/css/all.css";
+import '../styles/roomList.css'
 
 export interface ChatProps { }
 
@@ -150,11 +151,20 @@ const RoomListPage: React.FunctionComponent<ChatProps> = () => {
                     </div>
                 </div>
             </section>
-            <section className="d-flex flex-column align-items-stretch flex-shrink-8">
-                <RoomButton>{{title: "Chatroom Name 1", users: 120}}</RoomButton>
-                <RoomButton>{{title: "Chatroom Name 2", users: 30}}</RoomButton>
-                <RoomButton>{{title: "Chatroom Name 3", users: 12}}</RoomButton>
-                <RoomButton>{{title: "Chatroom Name 4", users: 8}}</RoomButton>
+            <section className="container">
+                <div className="row p-3" id="create_room">
+                    <div className="col-lg-4 d-flex">
+                        <CreateRoomButton>New Chapter</CreateRoomButton>
+                    </div>
+                </div>
+                <div className="row p-3" id="rooms_list">
+                    <div className="col-lg-12 d-flex flex-column align-items-stretch flex-shrink-8">
+                        <RoomButton>{{id: 1, title: "Chatroom Name 1", users: 120}}</RoomButton>
+                        <RoomButton>{{id: 2, title: "Chatroom Name 2", users: 30}}</RoomButton>
+                        <RoomButton>{{id: 3, title: "Chatroom Name 3", users: 12}}</RoomButton>
+                        <RoomButton>{{id: 4, title: "Chatroom Name 4", users: 8}}</RoomButton>
+                    </div>
+                </div>
             </section>
         </main>
     )
