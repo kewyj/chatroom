@@ -23,17 +23,11 @@ interface HomeClock {
   time: string;
 }
 
-// Define the type for Message
-interface Message {
-  username: string;
-  content: string;
+// Define the type for Chatrooms
+interface Chatrooms {
+  chatroomID: string;
+  users: number;
 }
-
-const isWhitespace = (str: string): boolean => {
-  return /^\s*$/.test(str);
-};
-
-const timer = new TimerExample();
 
 // to give a color to username
 const predefinedColors = [
@@ -52,39 +46,18 @@ const predefinedColors = [
   "OliveDrab",
 ];
 
-// map username to color
-const usernameColors: { [key: string]: string } = {};
-
-const getRandomColor = () => {
-  const randomIndex = Math.floor(Math.random() * predefinedColors.length);
-  return predefinedColors[randomIndex];
-};
-
 const RoomListPage: React.FunctionComponent<ChatProps> = () => {
   const dispatch = useDispatch();
   const username = useSelector((state: AppState) => state.username);
-  //const usernameToSend = userID ? userID.username : '';
   const [currentClock, setClock] = useState<HomeClock>();
+  // To update and edit when database is up
+  //const [receivedChatrooms, setReceivedChatrooms] = useState<Chatrooms[]>([]);
 
   // when user comes here check if have userid, dont have, navigate to first page
   const navigate = useNavigate();
 
   const host = "localhost";
   const port = 3333;
-
-  // // placing usernameToSend and navigate under the [] meant that this useEffect() function will run whenever either usernameToSend or navigate changes
-  // useEffect(() => {
-  //     if (!usernameToSend) {
-  //         navigate('/');
-  //     }
-  // }, [usernameToSend, navigate]);
-
-  // useEffect(() => {
-  //     if (usernameToSend) {
-  //         // assign a color to the username for display
-  //         usernameColors[usernameToSend] = getRandomColor();
-  //     }
-  // }, [usernameToSend]);
 
   const updateClock = (data: HomeClock) => {
     setClock((prev) => {
@@ -127,37 +100,48 @@ const RoomListPage: React.FunctionComponent<ChatProps> = () => {
     };
   }, []);
 
-  // TO CHANGE
+  // To update and edit when database is up
+  // useEffect(() => {
+  //   // Fetch messages from the server and update receivedMessages state
+  //   fetchChatroomsFromServer();
+
+  //   // Update chatrooms every 5 seconds
+  //   const intervalId = setInterval(fetchChatroomsFromServer, 5000);
+
+  //   // Clear interval
+  //   return () => {
+  //       clearInterval(intervalId);
+  //   };
+  // }, []);
+
+  // To update and edit when database is up
   // const fetchChatroomsFromServer = async () => {
-  //     try {
-  //         const url = `http://${host}:${port}/chatrooms`;
+  //   try {
+  //     const url = `http://${host}:${port}/rooms`;
 
-  //         const response = await fetch(url, {
-  //             method: 'GET',
-  //             headers: {
-  //                 'Content-Type': 'application/json',
-  //             },
-
-  //         });
-  //         if (!response.ok) {
-  //             throw new Error('Failed to fetch messages');
-  //         }
-  //         const json = await response.json();
-
-  //         //console.log(data)
-
-  //         // CHEck if server response was null before calling state change
-  //         if (!json)
-  //             return;
-
-  //         //console.log(data)
-
-  //         // UPDATE AND RENDER THE AVAILABLE CHATROOMS + USERS
+  //     const response = await fetch(url, {
+  //       method: "GET",
+  //       headers: {
+  //         "Content-Type": "application/json",
+  //       },
+  //     });
+  //     if (!response.ok) {
+  //       throw new Error("Failed to fetch messages");
   //     }
-  //     catch (error) {
-  //         console.error('Error fetching messages:', error);
+  //     const data = await response.json();
+
+  //     // CHEck if server response was null before calling state change
+  //     // if (!json)
+  //     //     return;
+
+  //     // UPDATE AND RENDER THE AVAILABLE CHATROOMS + USERS
+  //     if (Array.isArray(data)) {
+  //       setReceivedChatrooms(data);
   //     }
-  // }
+  //   } catch (error) {
+  //     console.error("Error fetching messages:", error);
+  //   }
+  // };
 
   return (
     <main className="room_background">
@@ -199,6 +183,34 @@ const RoomListPage: React.FunctionComponent<ChatProps> = () => {
       </section>
     </main>
   );
+
+  // To update and edit when database is up
+  // return (
+  //   <main className="room_background">
+  //     <section className="container">
+  //       <div className="row p-3" id="clock">
+  //         <div className="col-lg-4">
+  //           <p>{currentClock?.date}</p>
+  //           <p>{currentClock?.time}</p>
+  //         </div>
+  //       </div>
+  //       <div className="row p-3" id="greetings">
+  //         <div className="col-lg-4 d-flex">
+  //           <p>Hello, {username}</p>
+  //         </div>
+  //       </div>
+  //     </section>
+  //     <section className="d-flex flex-column align-items-stretch flex-shrink-8">
+  //       {receivedChatrooms.map((chatroom) => (
+  //         <RoomButton
+  //           key={chatroom.chatroomID}
+  //           title={`Chatroom ${chatroom.chatroomID}`}
+  //           users={chatroom.users}
+  //         />
+  //       ))}
+  //     </section>
+  //   </main>
+  // );
 };
 
 export default RoomListPage;
