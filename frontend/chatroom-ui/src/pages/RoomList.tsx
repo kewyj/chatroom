@@ -1,21 +1,21 @@
-import React, {useEffect, useState} from 'react';
-import { useSelector, useDispatch } from 'react-redux';
-import { TimerExample } from '../SpamTimer'
-import { useNavigate } from 'react-router-dom';
+import React, { useEffect, useState } from "react";
+import { useSelector, useDispatch } from "react-redux";
+import { TimerExample } from "../SpamTimer";
+import { useNavigate } from "react-router-dom";
 
-import AppState from '../store';
+import AppState from "../store";
 
-import RoomButton from '../components/RoomButton';
-import CreateRoomButton from '../components/CreateRoomButton';
+import RoomButton from "../components/RoomButton";
+import CreateRoomButton from "../components/CreateRoomButton";
 
 import "@fortawesome/fontawesome-free/css/all.css";
-import '../styles/roomList.css'
+import "../styles/roomlist.css";
 
-export interface ChatProps { }
+export interface ChatProps {}
 
 // Define the type for your store state
 interface AppState {
-    username: string;
+  username: string;
 }
 
 interface HomeClock {
@@ -30,144 +30,175 @@ interface Message {
 }
 
 const isWhitespace = (str: string): boolean => {
-    return /^\s*$/.test(str);
-}
+  return /^\s*$/.test(str);
+};
 
-const timer = new TimerExample;
+const timer = new TimerExample();
 
 // to give a color to username
-const predefinedColors = ['BlueViolet', 'DeepPink', 'Coral', 'CornflowerBlue', 'Crimson', 'DarkOrange', 'DodgerBlue', 'Magenta', 'MediumPurple', 'RebeccaPurple', 'DarkSeaGreen', 'MediumSlateBlue', 'OliveDrab'];
+const predefinedColors = [
+  "BlueViolet",
+  "DeepPink",
+  "Coral",
+  "CornflowerBlue",
+  "Crimson",
+  "DarkOrange",
+  "DodgerBlue",
+  "Magenta",
+  "MediumPurple",
+  "RebeccaPurple",
+  "DarkSeaGreen",
+  "MediumSlateBlue",
+  "OliveDrab",
+];
 
 // map username to color
 const usernameColors: { [key: string]: string } = {};
 
 const getRandomColor = () => {
-    const randomIndex = Math.floor(Math.random() * predefinedColors.length);
-    return predefinedColors[randomIndex];
-}
+  const randomIndex = Math.floor(Math.random() * predefinedColors.length);
+  return predefinedColors[randomIndex];
+};
 
 const RoomListPage: React.FunctionComponent<ChatProps> = () => {
-    const dispatch = useDispatch();
-    const username = useSelector((state: AppState) => state.username);
-    //const usernameToSend = userID ? userID.username : '';
-    const [currentClock, setClock] = useState<HomeClock>();
+  const dispatch = useDispatch();
+  const username = useSelector((state: AppState) => state.username);
+  //const usernameToSend = userID ? userID.username : '';
+  const [currentClock, setClock] = useState<HomeClock>();
 
-    // when user comes here check if have userid, dont have, navigate to first page
-    const navigate = useNavigate();
+  // when user comes here check if have userid, dont have, navigate to first page
+  const navigate = useNavigate();
 
-    const host = "localhost"
-    const port = 3333
+  const host = "localhost";
+  const port = 3333;
 
-    // // placing usernameToSend and navigate under the [] meant that this useEffect() function will run whenever either usernameToSend or navigate changes
-    // useEffect(() => {
-    //     if (!usernameToSend) {
-    //         navigate('/');
-    //     }
-    // }, [usernameToSend, navigate]);
-    
-    // useEffect(() => {
-    //     if (usernameToSend) {
-    //         // assign a color to the username for display
-    //         usernameColors[usernameToSend] = getRandomColor();
-    //     }
-    // }, [usernameToSend]);
+  // // placing usernameToSend and navigate under the [] meant that this useEffect() function will run whenever either usernameToSend or navigate changes
+  // useEffect(() => {
+  //     if (!usernameToSend) {
+  //         navigate('/');
+  //     }
+  // }, [usernameToSend, navigate]);
 
-    const updateClock = (data: HomeClock) => {
-        setClock(prev => {
-            return data;
-        });
+  // useEffect(() => {
+  //     if (usernameToSend) {
+  //         // assign a color to the username for display
+  //         usernameColors[usernameToSend] = getRandomColor();
+  //     }
+  // }, [usernameToSend]);
+
+  const updateClock = (data: HomeClock) => {
+    setClock((prev) => {
+      return data;
+    });
+  };
+
+  const getTime = async () => {
+    try {
+      var today = new Date();
+      var homeClock: HomeClock = {
+        date:
+          today.getFullYear() +
+          "-" +
+          (today.getMonth() + 1) +
+          "-" +
+          today.getDate(),
+        time:
+          today.getHours() +
+          ":" +
+          today.getMinutes() +
+          ":" +
+          today.getSeconds(),
+      };
+      updateClock(homeClock);
+    } catch (error) {
+      console.error("Error fetching messages:", error);
     }
+  };
 
-    const getTime = async () => {
-        try {
-            var today = new Date();
-            var homeClock: HomeClock = {
-                date: today.getFullYear() + '-' + (today.getMonth() + 1) + '-' + today.getDate(),
-                time: today.getHours() + ":" + today.getMinutes() + ":" + today.getSeconds()
-            };
-            updateClock(homeClock);
-        }
-        catch (error) {
-            console.error('Error fetching messages:', error);
-        }
-    }
+  useEffect(() => {
+    getTime();
 
-    useEffect(() => {
-        getTime();
+    // Make interval every 1 sec
+    const intervalId = setInterval(getTime, 1000);
 
-        // Make interval every 1 sec
-        const intervalId = setInterval(getTime, 1000);
+    // Clear interval
+    return () => {
+      clearInterval(intervalId);
+    };
+  }, []);
 
-        // Clear interval
-        return () => {
-            clearInterval(intervalId);
-        };
-    }, []);
+  // TO CHANGE
+  // const fetchChatroomsFromServer = async () => {
+  //     try {
+  //         const url = `http://${host}:${port}/chatrooms`;
 
-    // TO CHANGE 
-    // const fetchChatroomsFromServer = async () => {
-    //     try {
-    //         const url = `http://${host}:${port}/chatrooms`;
+  //         const response = await fetch(url, {
+  //             method: 'GET',
+  //             headers: {
+  //                 'Content-Type': 'application/json',
+  //             },
 
-    //         const response = await fetch(url, {
-    //             method: 'GET',
-    //             headers: {
-    //                 'Content-Type': 'application/json',
-    //             },
+  //         });
+  //         if (!response.ok) {
+  //             throw new Error('Failed to fetch messages');
+  //         }
+  //         const json = await response.json();
 
-    //         });
-    //         if (!response.ok) {
-    //             throw new Error('Failed to fetch messages');
-    //         }
-    //         const json = await response.json();
+  //         //console.log(data)
 
-    //         //console.log(data)
+  //         // CHEck if server response was null before calling state change
+  //         if (!json)
+  //             return;
 
-    //         // CHEck if server response was null before calling state change
-    //         if (!json)
-    //             return;
+  //         //console.log(data)
 
-    //         //console.log(data)
+  //         // UPDATE AND RENDER THE AVAILABLE CHATROOMS + USERS
+  //     }
+  //     catch (error) {
+  //         console.error('Error fetching messages:', error);
+  //     }
+  // }
 
-    //         // UPDATE AND RENDER THE AVAILABLE CHATROOMS + USERS
-    //     }
-    //     catch (error) {
-    //         console.error('Error fetching messages:', error);
-    //     }
-    // }
-
-    return (
-        <main className="room_background">
-            <section className="container">
-                <div className="row p-3" id="clock">
-                    <div className="col-lg-4">
-                        <p>{currentClock?.date}</p>
-                        <p>{currentClock?.time}</p>
-                    </div>
-                </div>
-                <div className="row p-3" id="greetings">
-                    <div className="col-lg-4 d-flex">
-                        <p>Hello, {username}</p>
-                    </div>
-                </div>
-            </section>
-            <section className="container">
-                <div className="row p-3" id="create_room">
-                    <div className="col-lg-4 d-flex">
-                        <CreateRoomButton>New Chapter</CreateRoomButton>
-                    </div>
-                </div>
-                <div className="row p-3" id="rooms_list">
-                    <div className="col-lg-12 d-flex flex-column align-items-stretch flex-shrink-8">
-                        <RoomButton>{{id: 1, title: "Chatroom Name 1", users: 120}}</RoomButton>
-                        <RoomButton>{{id: 2, title: "Chatroom Name 2", users: 30}}</RoomButton>
-                        <RoomButton>{{id: 3, title: "Chatroom Name 3", users: 12}}</RoomButton>
-                        <RoomButton>{{id: 4, title: "Chatroom Name 4", users: 8}}</RoomButton>
-                    </div>
-                </div>
-            </section>
-        </main>
-    )
-}; 
+  return (
+    <main className="room_background">
+      <section className="container">
+        <div className="row p-3" id="clock">
+          <div className="col-lg-4">
+            <p>{currentClock?.date}</p>
+            <p>{currentClock?.time}</p>
+          </div>
+        </div>
+        <div className="row p-3" id="greetings">
+          <div className="col-lg-4 d-flex">
+            <p>Hello, {username}</p>
+          </div>
+        </div>
+      </section>
+      <section className="container">
+        <div className="row p-3" id="create_room">
+          <div className="col-lg-4 d-flex">
+            <CreateRoomButton>New Chapter</CreateRoomButton>
+          </div>
+        </div>
+        <div className="row p-3" id="rooms_list">
+          <div className="col-lg-12 d-flex flex-column align-items-stretch flex-shrink-8">
+            <RoomButton>
+              {{ id: 1, title: "Chatroom Name 1", users: 120 }}
+            </RoomButton>
+            <RoomButton>
+              {{ id: 2, title: "Chatroom Name 2", users: 30 }}
+            </RoomButton>
+            <RoomButton>
+              {{ id: 3, title: "Chatroom Name 3", users: 12 }}
+            </RoomButton>
+            <RoomButton>
+              {{ id: 4, title: "Chatroom Name 4", users: 8 }}
+            </RoomButton>
+          </div>
+        </div>
+      </section>
+    </main>
+  );
+};
 
 export default RoomListPage;
