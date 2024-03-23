@@ -31,6 +31,11 @@ func (l *LambdaHandler) LambdaHandler(ctx context.Context, request events.APIGat
 			return l.Rooms(request)
 		}
 
+	case "/newroom":
+		if request.RequestContext.HTTP.Method == "PUT" {
+			return l.NewRoom(request)
+		}
+
 	case "/newuser":
 		if request.RequestContext.HTTP.Method == "PUT" {
 			return l.NewUser(request)
@@ -74,6 +79,34 @@ func (l *LambdaHandler) Rooms(request events.APIGatewayV2HTTPRequest) (events.AP
 	response := events.APIGatewayV2HTTPResponse{
 		StatusCode: 200,
 		Body:       string(roomsJSON),
+		Headers: map[string]string{
+			"Content-Type": "application/json",
+		},
+	}
+
+	return response, nil
+}
+
+func (l *LambdaHandler) NewRoom(request events.APIGatewayV2HTTPRequest) (events.APIGatewayV2HTTPResponse, error) {
+	log.Println("Handling New Room Request")
+
+	roomid, err := l.controller.AddRoom()
+	if err != nil {
+		return events.APIGatewayV2HTTPResponse{StatusCode: 500}, err
+	}
+
+	roomidResponse := model.NewRoomResponse{
+		RoomID: roomid,
+	}
+
+	roomidJSON, err := json.Marshal(roomidResponse)
+	if err != nil {
+		return events.APIGatewayV2HTTPResponse{StatusCode: 500}, err
+	}
+
+	response := events.APIGatewayV2HTTPResponse{
+		StatusCode: 200,
+		Body:       string(roomidJSON),
 		Headers: map[string]string{
 			"Content-Type": "application/json",
 		},

@@ -43,6 +43,17 @@ func (cs *ChatService) GetRooms() ([]model.GetRoomsResponse, error) {
 	return responseSlice, nil
 }
 
+func (cs *ChatService) AddRoom() (string, error) {
+	newroom := model.NewChatRoom()
+
+	err := cs.storage.NewChatRoom(newroom)
+	if err != nil {
+		return "", err
+	}
+
+	return newroom.ID, nil
+}
+
 func (cs *ChatService) AddUser(user model.NewUserRequest) (string, error) {
 	if !cs.storage.CheckIfRoomExists(user.RoomID) {
 		return "", errors.New("tried to add user to chatroom that does not exist")
