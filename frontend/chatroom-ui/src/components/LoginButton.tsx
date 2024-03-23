@@ -42,7 +42,7 @@ const LoginButton = ({ children }: Props) => {
       }
       
       // Set username in the Redux store
-      dispatch(setUsername(username));
+      dispatch(setUsername(username.trim()));
 
       // Navigate to '/rooms' route
       navigate('/rooms');

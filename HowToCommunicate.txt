@@ -27,3 +27,10 @@ Poll - array of {"custom_username", "message"}
 
 Exit - none
 =========================================================
+COMMANDS
+
+GET /rooms
+PUT /newroom
+POST /chat
+PATCH /poll
+DELETE /exit
