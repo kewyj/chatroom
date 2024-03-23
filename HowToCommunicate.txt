@@ -3,6 +3,8 @@ CLIENT TO SERVER COMMS
 
 Get Rooms - none
 
+New Room - none
+
 New User - {"custom_username", "chatroom_id"}
 
 Send Message - {"chatroom_id", "user_uuid", "message"}
@@ -14,6 +16,8 @@ Exit - {"chatroom_id", "user_uuid"}
 SERVER TO CLIENT COMMS
 
 Get Rooms - array of {"chatroom_id, "num_users"}
+
+New Room - {"chatroom_id"}
 
 New User - {"user_uuid"}
 
