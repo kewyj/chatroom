@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import '../styles/components/loginButton.css'
@@ -24,47 +24,45 @@ const LoginButton = ({ children }: Props) => {
   const [username, setUsernameState] = useState("");
   const navigate = useNavigate();
   const dispatch = useDispatch();
+  const inputRef = useRef<HTMLInputElement>(null);
   
   const handleUsernameChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setUsernameState(event.target.value);
   }
 
-    const handleClick = async () => {
-      try {
-        if (!username.trim()) {
-          alert("Please enter a username.");
-          return;
+    const handleClick = () => {
+    try {
+      if (!username.trim()) {
+        alert("Please enter a username.");
+        setUsernameState("")
+        if (inputRef.current) {
+          inputRef.current.focus();
         }
-        // to get userID
-        const serverHost = config.server.host;
-        const serverPort = config.server.port;
-        const path = "/newuser";
-        const url = `http://${serverHost}:${serverPort}${path}`;
-        
-        // PUT request to server
-        const response = await Axios.put(url);
-        const newUserID = response.data;
+        return;
+      }
+      
+      // Set username in the Redux store
+      dispatch(setUsername(username));
 
-        // Dispatch an action to update the store with new userID
-        dispatch({ type: GET_USER_ID, payload: newUserID });
-        dispatch(setUsername(username));
-
-        navigate('/rooms');
+      // Navigate to '/rooms' route
+      navigate('/rooms');
   
-      }
-      catch (error) {
-          console.error("Error fetching data:", error);
-      }
-    };
+    }
+    catch (error) {
+        console.error("Error:", error);
+    }
+  };
 
   return (
     <div className='parent-container'>
       <input 
+      ref= {inputRef}
       type="text"
       placeholder="Enter your username"
       className="form-control-input"
       value={username}
-      onChange={handleUsernameChange}
+        onChange={handleUsernameChange}
+        maxLength={28}
       />
     <button className='btn btn-primary btn-sx' onClick={handleClick}>
       {children}

@@ -270,7 +270,7 @@ const ChatPage: React.FunctionComponent<ChatProps> = () => {
                     body: JSON.stringify(
                         dataToSend)
                 });
-
+                //response.status (CHECK IF NOT 200)
                 // Clear the input field after sending message
                 dispatch(setMessage(''));
 

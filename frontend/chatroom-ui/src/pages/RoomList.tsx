@@ -14,10 +14,7 @@ export interface ChatProps { }
 
 // Define the type for your store state
 interface AppState {
-  userID: {
     username: string;
-    } | null;
-  message: string;
 }
 
 interface HomeClock {
@@ -50,8 +47,8 @@ const getRandomColor = () => {
 
 const RoomListPage: React.FunctionComponent<ChatProps> = () => {
     const dispatch = useDispatch();
-    const userID = useSelector((state: AppState) => state.userID);
-    const usernameToSend = userID ? userID.username : '';
+    const username = useSelector((state: AppState) => state.username);
+    //const usernameToSend = userID ? userID.username : '';
     const [currentClock, setClock] = useState<HomeClock>();
 
     // when user comes here check if have userid, dont have, navigate to first page
@@ -60,19 +57,19 @@ const RoomListPage: React.FunctionComponent<ChatProps> = () => {
     const host = "localhost"
     const port = 3333
 
-    // placing usernameToSend and navigate under the [] meant that this useEffect() function will run whenever either usernameToSend or navigate changes
-    useEffect(() => {
-        if (!usernameToSend) {
-            navigate('/');
-        }
-    }, [usernameToSend, navigate]);
+    // // placing usernameToSend and navigate under the [] meant that this useEffect() function will run whenever either usernameToSend or navigate changes
+    // useEffect(() => {
+    //     if (!usernameToSend) {
+    //         navigate('/');
+    //     }
+    // }, [usernameToSend, navigate]);
     
-    useEffect(() => {
-        if (usernameToSend) {
-            // assign a color to the username for display
-            usernameColors[usernameToSend] = getRandomColor();
-        }
-    }, [usernameToSend]);
+    // useEffect(() => {
+    //     if (usernameToSend) {
+    //         // assign a color to the username for display
+    //         usernameColors[usernameToSend] = getRandomColor();
+    //     }
+    // }, [usernameToSend]);
 
     const updateClock = (data: HomeClock) => {
         setClock(prev => {
@@ -106,6 +103,38 @@ const RoomListPage: React.FunctionComponent<ChatProps> = () => {
         };
     }, []);
 
+    // TO CHANGE 
+    // const fetchChatroomsFromServer = async () => {
+    //     try {
+    //         const url = `http://${host}:${port}/chatrooms`;
+
+    //         const response = await fetch(url, {
+    //             method: 'GET',
+    //             headers: {
+    //                 'Content-Type': 'application/json',
+    //             },
+
+    //         });
+    //         if (!response.ok) {
+    //             throw new Error('Failed to fetch messages');
+    //         }
+    //         const json = await response.json();
+
+    //         //console.log(data)
+
+    //         // CHEck if server response was null before calling state change
+    //         if (!json)
+    //             return;
+
+    //         //console.log(data)
+
+    //         // UPDATE AND RENDER THE AVAILABLE CHATROOMS + USERS
+    //     }
+    //     catch (error) {
+    //         console.error('Error fetching messages:', error);
+    //     }
+    // }
+
     return (
         <main className="room_background">
             <section className="container">
@@ -117,7 +146,7 @@ const RoomListPage: React.FunctionComponent<ChatProps> = () => {
                 </div>
                 <div className="row p-3" id="greetings">
                     <div className="col-lg-4 d-flex">
-                        <p>Hello, {userID?.username?.substring(0, 10) || ''}{(userID?.username && userID?.username?.length > 10) ? "..." : ""}</p>
+                        <p>Hello, {username}</p>
                     </div>
                 </div>
             </section>
