@@ -29,16 +29,21 @@ const CreateRoomButton = ({ children }: Props) => {
       // to get userID
       const serverHost = config.server.host;
       const serverPort = config.server.port;
-      const path = "/newuser";
-      const url = `http://${serverHost}:${serverPort}${path}`;
-      
-      // PUT request to server
-      const response = await Axios.put(url);
-      const newUserID = response.data;
+      const nrPath = "/newroom";
+      const nrUrl = `http://${serverHost}:${serverPort}${nrPath}`;
+
+      // PUT /newroom to create room (implement when database is up)
+      // const roomResponse = await Axios.put(nrUrl);
+      // const roomId = roomResponse.data;
+
+      // PUT /newuser to get new username
+      const nuPath = "/newuser";
+      const nuUrl = `http://${serverHost}:${serverPort}${nuPath}`;
+      const userResponse = await Axios.put(nuUrl);
+      const newUserID = userResponse.data;
 
       // Dispatch an action to update the store with new userID
       dispatch({ type: GET_USER_ID, payload: newUserID });
-      dispatch(setUsername(username));
 
       navigate('/chat');
     }
