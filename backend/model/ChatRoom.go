@@ -6,9 +6,9 @@ import (
 
 // chatroom
 type ChatRoom struct {
-	ID       string
-	Users    map[string]string
-	Messages []Message
+	ID       string            `json:"chatroom_id"`
+	Users    map[string]string `json:"chat_users"`
+	Messages []Message         `json:"messages"`
 }
 
 func NewChatRoom() ChatRoom {

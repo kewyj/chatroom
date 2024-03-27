@@ -19,15 +19,18 @@ type ChatService struct {
 func NewChatService() *ChatService {
 	cache := storage.NewCache()
 
-	return &ChatService{
+	chatsvc := ChatService{
 		storage: cache,
 	}
+
+	chatsvc.storage.Initialize()
+	return &chatsvc
 }
 
 func (cs *ChatService) GetRooms() ([]model.GetRoomsResponse, error) {
 	rooms, err := cs.storage.GetRooms()
 	if err != nil {
-		return nil, nil
+		return nil, err
 	}
 
 	var responseSlice []model.GetRoomsResponse
@@ -44,14 +47,14 @@ func (cs *ChatService) GetRooms() ([]model.GetRoomsResponse, error) {
 }
 
 func (cs *ChatService) AddRoom() (string, error) {
-	newroom := model.NewChatRoom()
+	newroom := uuid.New().String()
 
 	err := cs.storage.NewChatRoom(newroom)
 	if err != nil {
 		return "", err
 	}
 
-	return newroom.ID, nil
+	return newroom, nil
 }
 
 func (cs *ChatService) AddUser(user model.NewUserRequest) (string, error) {
@@ -77,7 +80,7 @@ func (cs *ChatService) AddUser(user model.NewUserRequest) (string, error) {
 	// user successfully added
 	cs.sendUserJoinMessage(user)
 
-	cs.printServerStatus()
+	//cs.printServerStatus()
 
 	return user_uuid, nil
 }
@@ -106,7 +109,7 @@ func (cs *ChatService) SendMessage(msg model.MessageRequest) error {
 		Content:  msg.Content,
 	})
 
-	cs.printServerStatus()
+	//cs.printServerStatus()
 
 	return nil
 }
@@ -147,9 +150,16 @@ func (cs *ChatService) RemoveUser(req model.ExitRequest) error {
 		})
 	}
 
-	cs.printServerStatus()
+	//cs.printServerStatus()
 
 	return nil
+}
+
+func (cs *ChatService) ClearAll(password string) error {
+	if password != "Actually, life is beautiful and I have time." {
+		return errors.New("wrong password, database NOT cleared")
+	}
+	return cs.storage.ClearAll()
 }
 
 func (cs *ChatService) sendUserJoinMessage(user model.NewUserRequest) {

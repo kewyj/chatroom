@@ -9,4 +9,5 @@ type Controller interface {
 	SendMessage(msg model.MessageRequest) error
 	Poll(model.PollRequest) ([]model.Message, error)
 	RemoveUser(model.ExitRequest) error
+	ClearAll(string) error
 }

@@ -56,6 +56,11 @@ func (l *LambdaHandler) LambdaHandler(ctx context.Context, request events.APIGat
 			return l.Exit(request)
 		}
 
+	case "/clear":
+		if request.RequestContext.HTTP.Method == "DELETE" {
+			return l.Clear(request)
+		}
+
 	default:
 		return events.APIGatewayV2HTTPResponse{StatusCode: 404}, nil
 	}
@@ -209,6 +214,22 @@ func (l *LambdaHandler) Exit(request events.APIGatewayV2HTTPRequest) (events.API
 	return events.APIGatewayV2HTTPResponse{StatusCode: 200}, nil
 }
 
+func (l *LambdaHandler) Clear(request events.APIGatewayV2HTTPRequest) (events.APIGatewayV2HTTPResponse, error) {
+	log.Println("Handling Clear Request")
+
+	msg, err := l.UnmarshalClearRequest(request.Body)
+	if err != nil {
+		return events.APIGatewayV2HTTPResponse{StatusCode: 500}, err
+	}
+
+	err = l.controller.ClearAll(msg.Password)
+	if err != nil {
+		return events.APIGatewayV2HTTPResponse{StatusCode: 500}, err
+	}
+
+	return events.APIGatewayV2HTTPResponse{StatusCode: 200}, nil
+}
+
 func (l *LambdaHandler) UnmarshalNewUser(body string) (model.NewUserRequest, error) {
 	var user model.NewUserRequest
 	err := json.Unmarshal([]byte(body), &user)
@@ -244,6 +265,16 @@ func (l *LambdaHandler) UnmarshalExitRequest(body string) (model.ExitRequest, er
 	err := json.Unmarshal([]byte(body), &msg)
 	if err != nil {
 		return model.ExitRequest{}, err
+	}
+
+	return msg, nil
+}
+
+func (l *LambdaHandler) UnmarshalClearRequest(body string) (model.ClearRequest, error) {
+	var msg model.ClearRequest
+	err := json.Unmarshal([]byte(body), &msg)
+	if err != nil {
+		return model.ClearRequest{}, err
 	}
 
 	return msg, nil
