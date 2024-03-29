@@ -4,20 +4,17 @@ import (
 	"github.com/google/uuid"
 )
 
-const MAX_USERS_IN_ROOM = 10
-const MAX_ROOMS = 10
-const INITIAL_ROOMS = 1
-const MAX_MESSAGES_PER_SECOND = 2
-
 // chatroom
 type ChatRoom struct {
-	ID    string
-	Users []string
+	ID       string            `json:"chatroom_id"`
+	Users    map[string]string `json:"users"`
+	Messages []Message         `json:"messages"`
 }
 
 func NewChatRoom() ChatRoom {
 	return ChatRoom{
-		ID:    uuid.New().String(),
-		Users: []string{},
+		ID:       uuid.New().String(),
+		Users:    make(map[string]string),
+		Messages: []Message{},
 	}
 }

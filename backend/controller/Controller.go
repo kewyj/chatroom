@@ -3,9 +3,11 @@ package controller
 import "github.com/kewyj/chatroom/model"
 
 type Controller interface {
-	AddUser() (string, error)
-	SendMessage(msg model.Message) error
-	Poll(string) (model.MessageQueue, error)
-	RemoveUser(string) error
-	IsUserSpamming(string) bool
+	GetRooms() ([]model.GetRoomsResponse, error)
+	AddRoom() (string, error)
+	AddUser(user model.NewUserRequest) (string, error)
+	SendMessage(msg model.MessageRequest) error
+	Poll(model.PollRequest) ([]model.Message, error)
+	RemoveUser(model.ExitRequest) error
+	ClearAll(string) error
 }

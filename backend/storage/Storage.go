@@ -3,20 +3,24 @@ package storage
 import "github.com/kewyj/chatroom/model"
 
 type Storage interface {
-	AddNewChatRoom(cr model.ChatRoom) error
-	AddNewUser(user model.User) error
+	Initialize() error
 
-	AddMessageToUser(userid string, msg model.Message) error
+	CheckIfRoomExists(chatroom_id string) bool
 
-	GetUser(userid string) (model.User, error)
-	GetUsers() ([]model.User, error)
+	NewChatRoom(id string) error
+	AddUserToChatRoom(custom_username string, uuid string, chatroom_id string) error
+	AddMessageToChatRoom(chatroom_id string, msg model.Message) error
 
-	GetUserQueue(userid string) (model.MessageQueue, error)
-
-	GetRoom(roomid string) (model.ChatRoom, error)
 	GetRooms() ([]model.ChatRoom, error)
+	GetRoom(chatroom_id string) (model.ChatRoom, error)
+	GetUsername(chatroom_id string, uuid string) (string, error)
+	GetRoomUsernames(chatroom_id string) ([]string, error)
+	GetRoomUserUUIDs(chatroom_id string) ([]string, error)
+	GetRoomMessages(chatroom_id string) ([]model.Message, error)
 
-	RemoveUser(userid string) error
-	RemoveRoom(roomid string) error
-	ClearUserQueue(userid string) error
+	RemoveEarliestMessage(chatroom_id string) error
+	RemoveUserFromChatRoom(uuid string, chatroom_id string) error
+	RemoveRoom(chatroom_id string) error
+
+	ClearAll() error
 }

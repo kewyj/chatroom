@@ -4,8 +4,8 @@ const MAX_MESSAGES_IN_ROOM = 10
 
 // contents in a message
 type Message struct {
-	Username string `json:"username"`
-	Content  string `json:"content"`
+	Username string `json:"custom_username"`
+	Content  string `json:"message"`
 }
 
 // queue data struct

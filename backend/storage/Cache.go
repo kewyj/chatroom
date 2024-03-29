@@ -1,183 +1,391 @@
 package storage
 
 import (
-	"errors"
-	"sync"
-
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-sdk-go/service/dynamodb"
+	"github.com/aws/aws-sdk-go/service/dynamodb/dynamodbattribute"
 	"github.com/kewyj/chatroom/model"
 )
 
 type Cache struct {
-	// map of room name to Chatroom object
-	rooms map[string]model.ChatRoom
+	sess *session.Session
+	db   *dynamodb.DynamoDB
 
-	// map of username to user object
-	users map[string]model.User
-
-	// map of username to queue object
-	queues map[string]*model.MessageQueue
-
-	// mutex
-	mu sync.Mutex
+	tableName string
 }
 
 func NewCache() *Cache {
-	return &Cache{
-		rooms:  make(map[string]model.ChatRoom),
-		users:  make(map[string]model.User),
-		queues: make(map[string]*model.MessageQueue),
-	}
+	return &Cache{}
 }
 
-func (c *Cache) AddNewChatRoom(cr model.ChatRoom) error {
-	c.mu.Lock()
-	defer c.mu.Unlock()
+func (c *Cache) Initialize() error {
+	// Initialize a session that the SDK will use to load
+	// credentials from the shared credentials file ~/.aws/credentials
+	// and region from the shared configuration file ~/.aws/config.
+	c.tableName = "chatrooms"
 
-	c.rooms[cr.ID] = cr
-	return nil
-}
-
-func (c *Cache) AddNewUser(user model.User) error {
-	c.mu.Lock()
-	defer c.mu.Unlock()
-
-	room, ok := c.rooms[user.ChatroomID]
-	if !ok {
-		return errors.New("chatroom does not exist")
+	sess, err := session.NewSession(&aws.Config{
+		Region: aws.String("ap-southeast-1"), // e.g., us-west-2
+	})
+	if err != nil {
+		return err
 	}
 
-	room.Users = append(room.Users, user.Username)
-	c.rooms[user.ChatroomID] = room
+	c.sess = sess
 
-	c.queues[user.Username] = &model.MessageQueue{}
-	c.users[user.Username] = user
+	// Create DynamoDB client
+	c.db = dynamodb.New(c.sess)
 
 	return nil
 }
 
-func (c *Cache) AddMessageToUser(userid string, msg model.Message) error {
-	c.mu.Lock()
-	defer c.mu.Unlock()
-
-	queue, ok := c.queues[userid]
-	if !ok {
-		return errors.New("user does not exist")
+func (c *Cache) CheckIfRoomExists(chatroom_id string) bool {
+	key := map[string]*dynamodb.AttributeValue{
+		"chatroom_id": {
+			S: aws.String(chatroom_id),
+		},
 	}
 
-	queue.Enqueue(msg)
-	c.queues[userid] = queue
+	input := &dynamodb.GetItemInput{
+		TableName: aws.String(c.tableName),
+		Key:       key,
+	}
+
+	result, err := c.db.GetItem(input)
+	if err != nil {
+		return false
+	}
+
+	if result.Item != nil {
+		return true
+	} else {
+		return false
+	}
+}
+
+func (c *Cache) NewChatRoom(id string) error {
+	item := map[string]*dynamodb.AttributeValue{
+		"chatroom_id": {
+			S: aws.String(id),
+		},
+		"messages": {
+			L: []*dynamodb.AttributeValue{},
+		},
+		"users": {
+			M: map[string]*dynamodb.AttributeValue{},
+		},
+	}
+
+	input := &dynamodb.PutItemInput{
+		TableName: aws.String(c.tableName), // Replace with your table name
+		Item:      item,
+	}
+
+	// Put the item into the DynamoDB table
+	_, err := c.db.PutItem(input)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
-func (c *Cache) GetUser(userid string) (model.User, error) {
-	user, ok := c.users[userid]
-	if !ok {
-		return model.User{}, errors.New("user does not exist")
+func (c *Cache) AddUserToChatRoom(custom_username string, uuid string, chatroom_id string) error {
+	key := map[string]*dynamodb.AttributeValue{
+		"chatroom_id": {
+			S: aws.String(chatroom_id),
+		},
 	}
 
-	return user, nil
+	updateExpression := "SET #users.#newUser = :newName"
+	expressionAttributeNames := map[string]*string{
+		"#users":   aws.String("users"),
+		"#newUser": aws.String(uuid),
+	}
+	expressionAttributeValues := map[string]*dynamodb.AttributeValue{
+		":newName": {
+			S: aws.String(custom_username),
+		},
+	}
+
+	input := &dynamodb.UpdateItemInput{
+		TableName:                 aws.String(c.tableName),
+		Key:                       key,
+		UpdateExpression:          aws.String(updateExpression),
+		ExpressionAttributeNames:  expressionAttributeNames,
+		ExpressionAttributeValues: expressionAttributeValues,
+		ReturnValues:              aws.String("UPDATED_NEW"),
+	}
+
+	// Update the item in DynamoDB
+	_, err := c.db.UpdateItem(input)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
-func (c *Cache) GetUsers() ([]model.User, error) {
-	result := make([]model.User, 0, len(c.users))
+func (c *Cache) AddMessageToChatRoom(chatroom_id string, msg model.Message) error {
 
-	for _, val := range c.users {
-		result = append(result, val)
+	key := map[string]*dynamodb.AttributeValue{
+		"chatroom_id": {
+			S: aws.String(chatroom_id),
+		},
 	}
 
-	return result, nil
-}
-
-func (c *Cache) GetUserQueue(userid string) (model.MessageQueue, error) {
-	queue, ok := c.queues[userid]
-	if !ok {
-		return model.MessageQueue{}, errors.New("user does not exist")
+	newMessage := map[string]*dynamodb.AttributeValue{
+		"custom_username": {S: aws.String(msg.Username)},
+		"message":         {S: aws.String(msg.Content)},
 	}
 
-	result := model.MessageQueue{}
-
-	for _, val := range *queue {
-		result.Enqueue(val)
+	updateExpression := "SET messages = list_append(messages, :newMessage)"
+	expressionAttributeValues := map[string]*dynamodb.AttributeValue{
+		":newMessage": {
+			L: []*dynamodb.AttributeValue{
+				{M: newMessage},
+			},
+		},
 	}
 
-	return result, nil
-}
-
-func (c *Cache) GetRoom(roomid string) (model.ChatRoom, error) {
-	room, ok := c.rooms[roomid]
-	if !ok {
-		return model.ChatRoom{}, errors.New("chatroom does not exist")
+	input := &dynamodb.UpdateItemInput{
+		TableName:                 aws.String(c.tableName),
+		Key:                       key,
+		UpdateExpression:          aws.String(updateExpression),
+		ExpressionAttributeValues: expressionAttributeValues,
+		ReturnValues:              aws.String("UPDATED_NEW"),
 	}
 
-	return room, nil
+	// Update the item in DynamoDB
+	_, err := c.db.UpdateItem(input)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (c *Cache) GetRooms() ([]model.ChatRoom, error) {
-	result := make([]model.ChatRoom, 0, len(c.rooms))
-
-	for _, val := range c.rooms {
-		result = append(result, val)
+	input := &dynamodb.ScanInput{
+		TableName: aws.String(c.tableName),
 	}
 
-	return result, nil
+	result, err := c.db.Scan(input)
+	if err != nil {
+		return []model.ChatRoom{}, err
+	}
+
+	var chatRooms []model.ChatRoom
+
+	for _, item := range result.Items {
+		var chatRoom model.ChatRoom
+		err = dynamodbattribute.UnmarshalMap(item, &chatRoom)
+
+		if err != nil {
+			return []model.ChatRoom{}, err
+		}
+
+		chatRooms = append(chatRooms, chatRoom)
+	}
+
+	return chatRooms, nil
 }
 
-func (c *Cache) RemoveUser(userid string) error {
-	c.mu.Lock()
-	defer c.mu.Unlock()
-
-	user, ok := c.users[userid]
-	if !ok {
-		return errors.New("user does not exist")
+func (c *Cache) GetRoom(chatroom_id string) (model.ChatRoom, error) {
+	key := map[string]*dynamodb.AttributeValue{
+		"chatroom_id": {
+			S: aws.String(chatroom_id),
+		},
 	}
 
-	delete(c.users, userid)
-	delete(c.queues, userid)
-
-	room, ok := c.rooms[user.ChatroomID]
-	if !ok {
-		return errors.New("room does not exist")
+	input := &dynamodb.GetItemInput{
+		TableName: aws.String(c.tableName),
+		Key:       key,
 	}
 
-	index := -1
-	for i, val := range room.Users {
-		if val == userid {
-			index = i
-			break
+	result, err := c.db.GetItem(input)
+	if err != nil {
+		return model.ChatRoom{}, err
+	}
+
+	var chatRoom model.ChatRoom
+	err = dynamodbattribute.UnmarshalMap(result.Item, &chatRoom)
+	if err != nil {
+		return model.ChatRoom{}, err
+	}
+
+	return chatRoom, nil
+}
+
+func (c *Cache) GetUsername(chatroom_id string, uuid string) (string, error) {
+	chatRoom, err := c.GetRoom(chatroom_id)
+	if err != nil {
+		return "", err
+	}
+
+	return chatRoom.Users[uuid], nil
+}
+
+func (c *Cache) GetRoomUsernames(chatroom_id string) ([]string, error) {
+	chatroom, err := c.GetRoom(chatroom_id)
+	if err != nil {
+		return []string{}, err
+	}
+
+	usernames := make([]string, 0, len(chatroom.Users))
+	for _, username := range chatroom.Users {
+		usernames = append(usernames, username)
+	}
+
+	return usernames, nil
+}
+
+func (c *Cache) GetRoomUserUUIDs(chatroom_id string) ([]string, error) {
+	chatroom, err := c.GetRoom(chatroom_id)
+	if err != nil {
+		return []string{}, err
+	}
+
+	user_uuids := make([]string, 0, len(chatroom.Users))
+	for user_uuid := range chatroom.Users {
+		user_uuids = append(user_uuids, user_uuid)
+	}
+
+	return user_uuids, nil
+}
+
+func (c *Cache) GetRoomMessages(chatroom_id string) ([]model.Message, error) {
+	chatroom, err := c.GetRoom(chatroom_id)
+	if err != nil {
+		return []model.Message{}, err
+	}
+
+	return chatroom.Messages, nil
+}
+
+func (c *Cache) RemoveEarliestMessage(chatroom_id string) error {
+	key := map[string]*dynamodb.AttributeValue{
+		"chatroom_id": {
+			S: aws.String(chatroom_id),
+		},
+	}
+
+	getInput := &dynamodb.GetItemInput{
+		TableName: aws.String(c.tableName),
+		Key:       key,
+	}
+
+	result, err := c.db.GetItem(getInput)
+	if err != nil {
+		return err
+	}
+
+	var chatRoom map[string]interface{}
+	err = dynamodbattribute.UnmarshalMap(result.Item, &chatRoom)
+	if err != nil {
+		return err
+	}
+
+	messages, ok := chatRoom["messages"].([]interface{})
+	if !ok || len(messages) <= 1 {
+		return err
+	}
+	newMessages := messages[1:]
+
+	newMessagesAttributeValue, err := dynamodbattribute.MarshalList(newMessages)
+	if err != nil {
+		return err
+	}
+
+	updateInput := &dynamodb.UpdateItemInput{
+		TableName:        aws.String(c.tableName),
+		Key:              key,
+		UpdateExpression: aws.String("SET messages = :newMessages"),
+		ExpressionAttributeValues: map[string]*dynamodb.AttributeValue{
+			":newMessages": {
+				L: newMessagesAttributeValue,
+			},
+		},
+	}
+
+	_, err = c.db.UpdateItem(updateInput)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (c *Cache) RemoveUserFromChatRoom(uuid string, chatroom_id string) error {
+	updateInput := &dynamodb.UpdateItemInput{
+		TableName: aws.String(c.tableName),
+		Key: map[string]*dynamodb.AttributeValue{
+			"chatroom_id": {
+				S: aws.String(chatroom_id),
+			},
+		},
+		UpdateExpression: aws.String("REMOVE #users.#userKey"),
+		ExpressionAttributeNames: map[string]*string{
+			"#users":   aws.String("users"),
+			"#userKey": aws.String(uuid),
+		},
+		ReturnValues: aws.String("UPDATED_NEW"),
+	}
+
+	_, err := c.db.UpdateItem(updateInput)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (c *Cache) RemoveRoom(chatroom_id string) error {
+	deleteInput := &dynamodb.DeleteItemInput{
+		TableName: aws.String(c.tableName),
+		Key: map[string]*dynamodb.AttributeValue{
+			"chatroom_id": {
+				S: aws.String(chatroom_id),
+			},
+		},
+	}
+
+	_, err := c.db.DeleteItem(deleteInput)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (c *Cache) ClearAll() error {
+	scanInput := &dynamodb.ScanInput{
+		TableName:            aws.String(c.tableName),
+		ProjectionExpression: aws.String("chatroom_id"),
+	}
+
+	scanResult, err := c.db.Scan(scanInput)
+	if err != nil {
+		return err
+	}
+
+	for _, item := range scanResult.Items {
+		partitionKeyValue := item["chatroom_id"].S
+
+		deleteInput := &dynamodb.DeleteItemInput{
+			TableName: aws.String(c.tableName),
+			Key: map[string]*dynamodb.AttributeValue{
+				"chatroom_id": {
+					S: partitionKeyValue,
+				},
+			},
+		}
+
+		_, err := c.db.DeleteItem(deleteInput)
+		if err != nil {
+			return err
 		}
 	}
-
-	if index == -1 {
-		return nil
-	}
-
-	// remove user from room
-	room.Users = append(room.Users[:index], room.Users[index+1:]...)
-	c.rooms[user.ChatroomID] = room
-
-	return nil
-}
-
-func (c *Cache) RemoveRoom(roomid string) error {
-	c.mu.Lock()
-	defer c.mu.Unlock()
-
-	delete(c.rooms, roomid)
-
-	return nil
-}
-
-func (c *Cache) ClearUserQueue(userid string) error {
-	c.mu.Lock()
-	defer c.mu.Unlock()
-
-	queue, ok := c.queues[userid]
-	if !ok {
-		return errors.New("user does not exist")
-	}
-
-	queue.Clear()
-	c.queues[userid] = queue
-
 	return nil
 }
