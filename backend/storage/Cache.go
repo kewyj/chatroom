@@ -1,9 +1,6 @@
 package storage
 
 import (
-	"errors"
-	"fmt"
-
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
@@ -32,7 +29,7 @@ func (c *Cache) Initialize() error {
 		Region: aws.String("ap-southeast-1"), // e.g., us-west-2
 	})
 	if err != nil {
-		return fmt.Errorf("Initialize 35: %w", err)
+		return err
 	}
 
 	c.sess = sess
@@ -68,162 +65,154 @@ func (c *Cache) CheckIfRoomExists(chatroom_id string) bool {
 }
 
 func (c *Cache) NewChatRoom(id string) error {
-	newItem := map[string]interface{}{
-		"chatroom_id": aws.String(id),
-		"messages":    []interface{}{},
-		"users":       map[string]string{},
-	}
-
-	attributeVal, err := dynamodbattribute.MarshalMap(newItem)
-	if err != nil {
-		return fmt.Errorf("NewChatRoom 79: %w", err)
+	item := map[string]*dynamodb.AttributeValue{
+		"chatroom_id": {
+			S: aws.String(id),
+		},
+		"messages": {
+			L: []*dynamodb.AttributeValue{},
+		},
+		"users": {
+			M: map[string]*dynamodb.AttributeValue{},
+		},
 	}
 
 	input := &dynamodb.PutItemInput{
-		Item:      attributeVal,
-		TableName: aws.String(c.tableName),
+		TableName: aws.String(c.tableName), // Replace with your table name
+		Item:      item,
 	}
 
-	_, err = c.db.PutItem(input)
+	// Put the item into the DynamoDB table
+	_, err := c.db.PutItem(input)
 	if err != nil {
-		return fmt.Errorf("NewChatRoom 89: %w", err)
+		return err
 	}
 
 	return nil
 }
 
 func (c *Cache) AddUserToChatRoom(custom_username string, uuid string, chatroom_id string) error {
-	update := "SET #users.#uuid = :name"
-
-	exprAttrNames := map[string]*string{
-		"#users": aws.String("users"),
-		"#uuid":  aws.String(uuid),
+	key := map[string]*dynamodb.AttributeValue{
+		"chatroom_id": {
+			S: aws.String(chatroom_id),
+		},
 	}
 
-	exprAttrValues := map[string]*dynamodb.AttributeValue{
-		":name": {
+	updateExpression := "SET #users.#newUser = :newName"
+	expressionAttributeNames := map[string]*string{
+		"#users":   aws.String("users"),
+		"#newUser": aws.String(uuid),
+	}
+	expressionAttributeValues := map[string]*dynamodb.AttributeValue{
+		":newName": {
 			S: aws.String(custom_username),
 		},
 	}
 
 	input := &dynamodb.UpdateItemInput{
-		TableName: aws.String(c.tableName),
-		Key: map[string]*dynamodb.AttributeValue{
-			"chatroom_id": {
-				S: aws.String(chatroom_id),
-			},
-		},
-		UpdateExpression:          aws.String(update),
-		ExpressionAttributeNames:  exprAttrNames,
-		ExpressionAttributeValues: exprAttrValues,
+		TableName:                 aws.String(c.tableName),
+		Key:                       key,
+		UpdateExpression:          aws.String(updateExpression),
+		ExpressionAttributeNames:  expressionAttributeNames,
+		ExpressionAttributeValues: expressionAttributeValues,
 		ReturnValues:              aws.String("UPDATED_NEW"),
 	}
 
+	// Update the item in DynamoDB
 	_, err := c.db.UpdateItem(input)
 	if err != nil {
-		return fmt.Errorf("AddUserToChatRoom 124: %w", err)
+		return err
 	}
 
 	return nil
 }
 
 func (c *Cache) AddMessageToChatRoom(chatroom_id string, msg model.Message) error {
-	newMessage := map[string]*dynamodb.AttributeValue{
-		"message": {
-			S: aws.String(msg.Content),
-		},
-		"sender": {
-			S: aws.String(msg.Username),
+
+	key := map[string]*dynamodb.AttributeValue{
+		"chatroom_id": {
+			S: aws.String(chatroom_id),
 		},
 	}
 
-	messageAV, err := dynamodbattribute.MarshalMap(newMessage)
-	if err != nil {
-		return fmt.Errorf("AddMessageToChatRoom 142: %w", err)
+	newMessage := map[string]*dynamodb.AttributeValue{
+		"custom_username": {S: aws.String(msg.Username)},
+		"message":         {S: aws.String(msg.Content)},
 	}
 
 	updateExpression := "SET messages = list_append(messages, :newMessage)"
-
-	input := &dynamodb.UpdateItemInput{
-		TableName: aws.String(c.tableName),
-		Key: map[string]*dynamodb.AttributeValue{
-			"chatroom_id": {
-				S: aws.String(chatroom_id), // Replace with your chatroom ID
+	expressionAttributeValues := map[string]*dynamodb.AttributeValue{
+		":newMessage": {
+			L: []*dynamodb.AttributeValue{
+				{M: newMessage},
 			},
 		},
-		UpdateExpression: aws.String(updateExpression),
-		ExpressionAttributeValues: map[string]*dynamodb.AttributeValue{
-			":newMessage": {
-				L: []*dynamodb.AttributeValue{{
-					M: messageAV,
-				}},
-			},
-		},
-		ReturnValues: aws.String("UPDATED_NEW"),
 	}
 
-	_, err = c.db.UpdateItem(input)
+	input := &dynamodb.UpdateItemInput{
+		TableName:                 aws.String(c.tableName),
+		Key:                       key,
+		UpdateExpression:          aws.String(updateExpression),
+		ExpressionAttributeValues: expressionAttributeValues,
+		ReturnValues:              aws.String("UPDATED_NEW"),
+	}
+
+	// Update the item in DynamoDB
+	_, err := c.db.UpdateItem(input)
 	if err != nil {
-		return fmt.Errorf("AddMessageToChatRoom 167: %w", err)
+		return err
 	}
 
 	return nil
 }
 
 func (c *Cache) GetRooms() ([]model.ChatRoom, error) {
-	params := &dynamodb.ScanInput{
-		TableName:            aws.String("chatrooms"),
-		ProjectionExpression: aws.String("#chatroom_id, #users, #messages"),
-		ExpressionAttributeNames: map[string]*string{
-			"#chatroom_id": aws.String("chatroom_id"),
-			"#users":       aws.String("users"),
-			"#messages":    aws.String("messages"),
-		},
+	input := &dynamodb.ScanInput{
+		TableName: aws.String(c.tableName),
 	}
 
-	result, err := c.db.Scan(params)
+	result, err := c.db.Scan(input)
 	if err != nil {
-		return []model.ChatRoom{}, fmt.Errorf("GetRooms 186: %w", err)
+		return []model.ChatRoom{}, err
 	}
 
-	info := []model.ChatRoom{}
-	for _, val := range result.Items {
-		var chatroom model.ChatRoom
+	var chatRooms []model.ChatRoom
 
-		err = dynamodbattribute.UnmarshalMap(val, &chatroom)
+	for _, item := range result.Items {
+		var chatRoom model.ChatRoom
+		err = dynamodbattribute.UnmarshalMap(item, &chatRoom)
+
 		if err != nil {
-			return []model.ChatRoom{}, fmt.Errorf("GetRooms 195: %w", err)
+			return []model.ChatRoom{}, err
 		}
 
-		info = append(info, chatroom)
+		chatRooms = append(chatRooms, chatRoom)
 	}
 
-	return info, nil
+	return chatRooms, nil
 }
 
 func (c *Cache) GetRoom(chatroom_id string) (model.ChatRoom, error) {
+	key := map[string]*dynamodb.AttributeValue{
+		"chatroom_id": {
+			S: aws.String(chatroom_id),
+		},
+	}
+
 	input := &dynamodb.GetItemInput{
 		TableName: aws.String(c.tableName),
-		Key: map[string]*dynamodb.AttributeValue{
-			"chatroom_id": {
-				S: aws.String(chatroom_id),
-			},
-		},
+		Key:       key,
 	}
 
 	result, err := c.db.GetItem(input)
 	if err != nil {
-		return model.ChatRoom{}, fmt.Errorf("GetRoom 216: %w", err)
-	}
-
-	if result.Item == nil {
-		return model.ChatRoom{}, errors.New("GetRoom 220: chatroom not found")
+		return model.ChatRoom{}, err
 	}
 
 	var chatRoom model.ChatRoom
 	err = dynamodbattribute.UnmarshalMap(result.Item, &chatRoom)
 	if err != nil {
-		return model.ChatRoom{}, fmt.Errorf("GetRoom 226: %w", err)
+		return model.ChatRoom{}, err
 	}
 
 	return chatRoom, nil
@@ -232,7 +221,7 @@ func (c *Cache) GetRoom(chatroom_id string) (model.ChatRoom, error) {
 func (c *Cache) GetUsername(chatroom_id string, uuid string) (string, error) {
 	chatRoom, err := c.GetRoom(chatroom_id)
 	if err != nil {
-		return "", fmt.Errorf("GetUsername 235: %w", err)
+		return "", err
 	}
 
 	return chatRoom.Users[uuid], nil
@@ -241,7 +230,7 @@ func (c *Cache) GetUsername(chatroom_id string, uuid string) (string, error) {
 func (c *Cache) GetRoomUsernames(chatroom_id string) ([]string, error) {
 	chatroom, err := c.GetRoom(chatroom_id)
 	if err != nil {
-		return []string{}, fmt.Errorf("GetRoomUsernames 244: %w", err)
+		return []string{}, err
 	}
 
 	usernames := make([]string, 0, len(chatroom.Users))
@@ -255,7 +244,7 @@ func (c *Cache) GetRoomUsernames(chatroom_id string) ([]string, error) {
 func (c *Cache) GetRoomUserUUIDs(chatroom_id string) ([]string, error) {
 	chatroom, err := c.GetRoom(chatroom_id)
 	if err != nil {
-		return []string{}, fmt.Errorf("GetRoomUserUUIDs 258: %w", err)
+		return []string{}, err
 	}
 
 	user_uuids := make([]string, 0, len(chatroom.Users))
@@ -269,54 +258,91 @@ func (c *Cache) GetRoomUserUUIDs(chatroom_id string) ([]string, error) {
 func (c *Cache) GetRoomMessages(chatroom_id string) ([]model.Message, error) {
 	chatroom, err := c.GetRoom(chatroom_id)
 	if err != nil {
-		return []model.Message{}, fmt.Errorf("GetRoomMessages 272: %w", err)
+		return []model.Message{}, err
 	}
 
 	return chatroom.Messages, nil
 }
 
 func (c *Cache) RemoveEarliestMessage(chatroom_id string) error {
-	input := &dynamodb.UpdateItemInput{
-		TableName: aws.String(c.tableName),
-		Key: map[string]*dynamodb.AttributeValue{
-			"chatroom_id": {
-				S: aws.String(chatroom_id),
-			},
+	key := map[string]*dynamodb.AttributeValue{
+		"chatroom_id": {
+			S: aws.String(chatroom_id),
 		},
-		UpdateExpression: aws.String("REMOVE messages[0]"),
-		ReturnValues:     aws.String("UPDATED_NEW"),
 	}
 
-	_, err := c.db.UpdateItem(input)
+	getInput := &dynamodb.GetItemInput{
+		TableName: aws.String(c.tableName),
+		Key:       key,
+	}
+
+	result, err := c.db.GetItem(getInput)
 	if err != nil {
-		return fmt.Errorf("RemoveEarliestMessage 292: %w", err)
+		return err
+	}
+
+	var chatRoom map[string]interface{}
+	err = dynamodbattribute.UnmarshalMap(result.Item, &chatRoom)
+	if err != nil {
+		return err
+	}
+
+	messages, ok := chatRoom["messages"].([]interface{})
+	if !ok || len(messages) <= 1 {
+		return err
+	}
+	newMessages := messages[1:]
+
+	newMessagesAttributeValue, err := dynamodbattribute.MarshalList(newMessages)
+	if err != nil {
+		return err
+	}
+
+	updateInput := &dynamodb.UpdateItemInput{
+		TableName:        aws.String(c.tableName),
+		Key:              key,
+		UpdateExpression: aws.String("SET messages = :newMessages"),
+		ExpressionAttributeValues: map[string]*dynamodb.AttributeValue{
+			":newMessages": {
+				L: newMessagesAttributeValue,
+			},
+		},
+	}
+
+	_, err = c.db.UpdateItem(updateInput)
+	if err != nil {
+		return err
 	}
 
 	return nil
 }
 
 func (c *Cache) RemoveUserFromChatRoom(uuid string, chatroom_id string) error {
-	input := &dynamodb.UpdateItemInput{
+	updateInput := &dynamodb.UpdateItemInput{
 		TableName: aws.String(c.tableName),
 		Key: map[string]*dynamodb.AttributeValue{
-			"chatroom_id": { // The attribute name for the chatroom ID (partition key)
+			"chatroom_id": {
 				S: aws.String(chatroom_id),
 			},
 		},
-		UpdateExpression: aws.String(fmt.Sprintf("REMOVE users.%s", uuid)),
-		ReturnValues:     aws.String("UPDATED_NEW"),
+		UpdateExpression: aws.String("REMOVE #users.#userKey"),
+		ExpressionAttributeNames: map[string]*string{
+			"#users":   aws.String("users"),
+			"#userKey": aws.String(uuid),
+		},
+		ReturnValues: aws.String("UPDATED_NEW"),
 	}
 
-	_, err := c.db.UpdateItem(input)
+	_, err := c.db.UpdateItem(updateInput)
 	if err != nil {
-		return fmt.Errorf("RemoveUserFromChatRoom 312: %w", err)
+		return err
 	}
 
 	return nil
 }
 
 func (c *Cache) RemoveRoom(chatroom_id string) error {
-	input := &dynamodb.DeleteItemInput{
+	deleteInput := &dynamodb.DeleteItemInput{
 		TableName: aws.String(c.tableName),
 		Key: map[string]*dynamodb.AttributeValue{
 			"chatroom_id": {
@@ -325,9 +351,9 @@ func (c *Cache) RemoveRoom(chatroom_id string) error {
 		},
 	}
 
-	_, err := c.db.DeleteItem(input)
+	_, err := c.db.DeleteItem(deleteInput)
 	if err != nil {
-		return fmt.Errorf("RemoveRoom 330: %w", err)
+		return err
 	}
 
 	return nil
@@ -341,7 +367,7 @@ func (c *Cache) ClearAll() error {
 
 	scanResult, err := c.db.Scan(scanInput)
 	if err != nil {
-		return fmt.Errorf("ClearAll 345: %w", err)
+		return err
 	}
 
 	for _, item := range scanResult.Items {
@@ -358,7 +384,7 @@ func (c *Cache) ClearAll() error {
 
 		_, err := c.db.DeleteItem(deleteInput)
 		if err != nil {
-			return fmt.Errorf("ClearAll 361: %w", err)
+			return err
 		}
 	}
 	return nil

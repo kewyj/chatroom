@@ -7,7 +7,7 @@ import (
 // chatroom
 type ChatRoom struct {
 	ID       string            `json:"chatroom_id"`
-	Users    map[string]string `json:"chat_users"`
+	Users    map[string]string `json:"users"`
 	Messages []Message         `json:"messages"`
 }
 

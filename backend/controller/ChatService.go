@@ -163,7 +163,7 @@ func (cs *ChatService) ClearAll(password string) error {
 }
 
 func (cs *ChatService) sendUserJoinMessage(user model.NewUserRequest) {
-	cs.storage.AddMessageToChatRoom(user.CustomUsername, model.Message{
+	cs.storage.AddMessageToChatRoom(user.RoomID, model.Message{
 		Username: ".:system:.",
 		Content:  user.CustomUsername + " has joined the chat.",
 	})
