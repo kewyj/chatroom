@@ -2,7 +2,7 @@ import React, {useEffect, useState} from 'react';
 import "@fortawesome/fontawesome-free/css/all.css";
 import AppState from '../store'
 import { useSelector, useDispatch } from 'react-redux';
-import { setMessage } from '../actions'
+import { setChatroomID, setMessage } from '../actions'
 import { TimerExample } from '../SpamTimer'
 import { unstable_useViewTransitionState, useNavigate } from 'react-router-dom';
 import { useLocation } from 'react-router-dom';
@@ -13,10 +13,10 @@ export interface ChatProps { }
 
 // Define the type for your store state
 interface AppState {
-  userID: {
+    userID: string;
+    message: string;
+    chatID: string;
     username: string;
-    } | null;
-  message: string;
 }
 
 // Define the type for Message
@@ -35,7 +35,7 @@ const timer = new TimerExample;
 const predefinedColors = ['BlueViolet', 'DeepPink', 'Coral', 'CornflowerBlue', 'Crimson', 'DarkOrange', 'DodgerBlue', 'Magenta', 'MediumPurple', 'RebeccaPurple', 'DarkSeaGreen', 'MediumSlateBlue', 'OliveDrab'];
 
 // map username to color
-const usernameColors: { [key: string]: string } = {};
+const usernameColors: { [username: string]: string } = {};
 
 const getRandomColor = () => {
     const randomIndex = Math.floor(Math.random() * predefinedColors.length);
@@ -46,8 +46,10 @@ const ChatPage: React.FunctionComponent<ChatProps> = () => {
     const dispatch = useDispatch();
     const userID = useSelector((state: AppState) => state.userID);
     const message = useSelector((state: AppState) => state.message);
+    const chatID = useSelector((state: AppState) => state.chatID);
+    const customUsername = useSelector((state: AppState) => state.username);
     const [receivedMessages, setReceivedMessages] = useState<Message[]>([]);
-    const usernameToSend = userID ? userID.username : '';
+    const usernameToSend = userID;
     const [messageLimit, _setMessageLimit] = useState<number>(32); // added underscore to remove warning
     const [isVisible, setVisibility] = useState<boolean>(false);
     const [isGlittering, setIsGlittering] = useState<boolean>(true);
@@ -94,12 +96,10 @@ const ChatPage: React.FunctionComponent<ChatProps> = () => {
     const history = createBrowserHistory();
     const location = useLocation();
 
-    console.log(window.location.href);
-
     useEffect(() => {
         let allowNavigation = true;
         const handlePop = (update: Update) => {
-            if (allowNavigation && usernameToSend == userID?.username && update.action === 'POP') {
+            if (allowNavigation && usernameToSend && update.action === 'POP') {
                 if (window.confirm("Leaving so soon? Chat data will be lost.")) {
                     SetIsOnce(true);
                     exitToServer();
@@ -193,10 +193,12 @@ const ChatPage: React.FunctionComponent<ChatProps> = () => {
         // Fetch messages from the server and update receivedMessages state
         fetchMessagesFromServer();
 
-        // Make interval every 0.1 sec
+        console.log(receivedMessages)
+
+        //Make interval every 0.1 sec
         const intervalId = setInterval(fetchMessagesFromServer, 100);
 
-        // Clear interval
+        //Clear interval
         return () => {
             clearInterval(intervalId);
         };
@@ -211,7 +213,7 @@ const ChatPage: React.FunctionComponent<ChatProps> = () => {
     }, [usernameToSend, navigate]);
     
     useEffect(() => {
-        if (usernameToSend) {
+        if (typeof usernameToSend === 'string') {
             // assign a color to the username for display
             usernameColors[usernameToSend] = getRandomColor();
         }
@@ -253,49 +255,49 @@ const ChatPage: React.FunctionComponent<ChatProps> = () => {
         event.preventDefault();
 
         const dataToSend = {
+            chatroom_id: chatID,
             username: usernameToSend,
-            content: message
+            message: message
         };
 
-        //console.log('Data to send:', dataToSend);
+         console.log(`/chat sending chatroom: ${dataToSend.chatroom_id}`);
+         console.log(`/chat sending username: ${dataToSend.username}`);
+         console.log(`/chat sending message: ${dataToSend.message}`);
 
         try {
-            if (!isWhitespace(dataToSend.content)) {
-                // Send message to the server
-                const response = await fetch(`http://${host}:${port}/chat`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify(
-                        dataToSend)
-                });
-                //response.status (CHECK IF NOT 200)
-                // Clear the input field after sending message
-                dispatch(setMessage(''));
+            if (!isWhitespace(dataToSend.message)) {
 
-                if (!response.ok) {
-                    throw new Error('Failed to fetch response from /chat');
-                }
+            fetch(`https://1bs9qf5xn1.execute-api.ap-southeast-1.amazonaws.com/chat`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(
+                    dataToSend)
+            });
+                
+            //response.status (CHECK IF NOT 200)
+            // Clear the input field after sending message
+            dispatch(setMessage(''));
 
-                console.log(enterKeyCount);
+            //console.log(enterKeyCount);
 
-                if (enterKeyCount > maxKeyPress) {
-                    warnUsers();
-                    timer.setIsVisibleTrue(setVisibility);
-                }
+            if (enterKeyCount > maxKeyPress) {
+                warnUsers();
+                timer.setIsVisibleTrue(setVisibility);
+            }
 
-                // const data = await response.json();
+            // const data = await response.json();
 
-                // if (!data)
-                //     return;
+            // if (!data)
+            //     return;
 
-                // // Update receivedMessages state with the messages received from the server
-                // if (data.username)
-                // {
-                //     warnUsers();
-                //     timer.setIsVisibleTrue(setVisibility);
-                // }
+            // // Update receivedMessages state with the messages received from the server
+            // if (data.username)
+            // {
+            //     warnUsers();
+            //     timer.setIsVisibleTrue(setVisibility);
+            // }
             }
 
         } catch (error) {
@@ -308,12 +310,16 @@ const ChatPage: React.FunctionComponent<ChatProps> = () => {
         dispatch(setMessage(value));
     }
 
-    const updateReceivedMessages = (data: Message[]) => {
-    setReceivedMessages(prevMessages => {
-        const combinedMessages = [...prevMessages, ...data];
-        const newMessages = combinedMessages.slice(-messageLimit);
-        return newMessages;
-    });
+    const updateReceivedMessages = (data: { custom_username: string; message: string }[]) => {
+        const newMessages = data.map(item => ({
+            username: item.custom_username,
+            content: item.message
+        }));
+
+        // Keep only the latest 'messageLimit' messages
+        const limitedMessages = newMessages.slice(-messageLimit);
+
+        setReceivedMessages(limitedMessages);
     }
 
     const warnUsers = () => {
@@ -323,13 +329,15 @@ const ChatPage: React.FunctionComponent<ChatProps> = () => {
     const exitToServer = async () => {
 
         const dataToSend = {
-        username: usernameToSend
+            chatroom_id: chatID,
+            user_uuid: usernameToSend
         };
 
-        console.log("sending exit to server")
+        console.log(`chatID sent: ${dataToSend.chatroom_id}`)
+        console.log(`username sent: ${dataToSend.user_uuid}`)
 
         try {
-            fetch(`http://${host}:${port}/exit`, {
+            fetch(`https://1bs9qf5xn1.execute-api.ap-southeast-1.amazonaws.com/exit`, {
             method: 'DELETE',
             headers: {
                 'Content-Type': 'application/json',
@@ -341,7 +349,10 @@ const ChatPage: React.FunctionComponent<ChatProps> = () => {
             console.log(dataToSend);
                         
             const exitConfirmation = 'Leaving so soon?';
-            dispatch({ type: 'RESET_USER' });
+
+            //dispatch(setChatroomID(''));
+            //dispatch({ type: 'RESET_USER' });
+
             //window.location.reload();
             return exitConfirmation;
         }
@@ -353,52 +364,67 @@ const ChatPage: React.FunctionComponent<ChatProps> = () => {
 
     const fetchMessagesFromServer = async () => {
         try {
-            const url = `http://${host}:${port}/poll`;
-    
-            const dataforPatch = {
-                username: usernameToSend
-            };
 
-            const response = await fetch(url, {
+            const dataToSend = {
+                chatroom_id: chatID
+            }
+
+            const chatResponse = await fetch(`https://1bs9qf5xn1.execute-api.ap-southeast-1.amazonaws.com/poll`, {
                 method: 'PATCH',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify(dataforPatch)
-            });
-            if (!response.ok) {
-                throw new Error('Failed to fetch messages');
-            }
-            const json = await response.json();
-
-            //console.log(data)
-
-            // CHEck if server response was null before calling state change
-            if (!json)
+                body: JSON.stringify(
+                    dataToSend)
+                });
+                
+                const chatData = await chatResponse.json();
+                
+                //console.log(data)
+                
+                // CHEck if server response was null before calling state change
+                if (!chatData)
                 return;
-
-            //console.log(data)
-
+            
             // Update receivedMessages state with the messages received from the server
-            updateReceivedMessages(json);
+            updateReceivedMessages(chatData);
         }
         catch (error) {
             console.error('Error fetching messages:', error);
         }
     }
 
+    // let substringResult = "";
+
+    // if (usernameToSend !== undefined) {
+    // substringResult = usernameToSend.substring(0, 4); // Safely accessing substring if myString is defined
+    // console.log(substringResult);
+    // } else {
+    // console.log("myString is undefined");
+    // }
+
     return (
         <div className="chat-background">
             <div className="d-flex flex-column align-items-stretch flex-shrink-8">
                 <div className={`d-flex align-items-center flex-shrink-8 p-3 link-dark text-decoration-none border-bottom `}>
-                    <input className={`fs-5 fw-semibold ${isGlittering ? 'username-glitter' : ''}`} style={{ borderColor: 'mediumorchid', fontSize: '20px', color: usernameColors[usernameToSend] || '#000000', fontWeight: 'bold'}} value={userID?.username?.substring(0, 4) || ''} readOnly />
+                    <input
+                        className={`fs-5 fw-semibold ${isGlittering ? 'username-glitter' : ''}`}
+                        style={{
+                            borderColor: 'mediumorchid',
+                            fontSize: '20px',
+                            color: (typeof usernameToSend === 'string' ? (usernameColors[usernameToSend]?.substring(0, 4) || '#000000') : '#000000'),
+                            fontWeight: 'bold'
+                        }}
+                        value={customUsername}
+                        readOnly
+                    />
                 </div>
                 {receivedMessages && receivedMessages.length > 0 && (
                     <div className="messages-container">
                         {receivedMessages.map((msg, index) => {
                             return (
                                 <div key={index} className="message">
-                                    <strong style={{ color: msg.username.substring(0, 4) === usernameToSend.substring(0, 4) ? (usernameColors[usernameToSend] || '#000000') : '#000000' }}>{msg.username}: </strong>{msg.content}
+                                    <strong style={{ color: (typeof msg.username === 'string' && msg.username.substring(0, 4) === (typeof usernameToSend === 'string' && usernameToSend.substring(0, 4))) ? (usernameColors[usernameToSend] || '#000000') : '#000000' }}>{msg.username}: </strong>{msg.content}
                                 </div>
                             );
                         })}
@@ -414,7 +440,7 @@ const ChatPage: React.FunctionComponent<ChatProps> = () => {
                 }
             </div>
         </div>
-    )
+    );
 }; 
 
 export default ChatPage;

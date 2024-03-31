@@ -3,7 +3,7 @@ import React from "react";
 import { useState } from 'react';
 import { useNavigate } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
-import { GET_USER_ID } from "../action_types";
+import { GET_USER_ID, SET_CHATROOM_ID } from "../action_types";
 import { setUsername } from '../actions';
 
 import config from '../config.json';
@@ -14,6 +14,7 @@ import '../styles/components/createRoomButton.css'
 
 // Define the type for your store state
 interface AppState {
+    userID: string;
   username: string;
 }
 
@@ -26,6 +27,7 @@ const CreateRoomButton = ({ children }: Props) => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const customUsername = useSelector((state: AppState) => state.username);
+  const userID = useSelector((state: AppState) => state.userID);
   
   const handleUsernameChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setUsernameState(event.target.value);
@@ -55,21 +57,25 @@ const CreateRoomButton = ({ children }: Props) => {
         chatroom_id: data.chatroom_id
       }
 
-      const newUserResponse = await fetch(`https://1bs9qf5xn1.execute-api.ap-southeast-1.amazonaws.com/newuser`, {
+      if (userID == null) {
+        const newUserResponse = await fetch(`https://1bs9qf5xn1.execute-api.ap-southeast-1.amazonaws.com/newuser`, {
           method: 'PUT',
           headers: {
-              'Content-Type': 'application/json',
+            'Content-Type': 'application/json',
           },
           body: JSON.stringify(
-              dataToSend)
-      });
+            dataToSend)
+        });
 
-      const newUserID = await newUserResponse.json();
-      console.log(`${newUserID.user_uuid} is the user's uuid`);
+        const newUserID = await newUserResponse.json();
+        console.log(`${newUserID.user_uuid} is the user's uuid`);
 
-      // Dispatch an action to update the store with new userID
-      dispatch({ type: GET_USER_ID, payload: newUserID });
-      //navigate('/chat');
+        // Dispatch an action to update the store with new userID
+        dispatch({ type: GET_USER_ID, payload: newUserID.user_uuid });
+      }
+      dispatch({ type: SET_CHATROOM_ID, payload: data.chatroom_id });
+
+      navigate('/chat');
     }
     catch (error) {
         console.error("Error fetching data:", error);
