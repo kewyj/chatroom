@@ -6,6 +6,8 @@ import LoginPage from './pages/Login';
 import ChatPage from './pages/Chat';
 import RoomListPage from './pages/RoomList';
 
+import './styles/main.css'
+
 function App() {
   return (
     <Provider store={store}>

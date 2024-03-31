@@ -54,20 +54,23 @@ const LoginButton = ({ children }: Props) => {
   };
 
   return (
-    <div className='parent-container'>
+    <div className='input_container'>
       <input 
       ref= {inputRef}
       type="text"
       placeholder="Enter your username"
-      className="form-control-input"
+      className="input"
       value={username}
         onChange={handleUsernameChange}
         maxLength={28}
       />
-    <button className='btn btn-primary btn-sx' onClick={handleClick}>
-      {children}
-    </button>
-  </div>
+      <div className='button_container'>
+        <button className='button' onClick={handleClick}>
+          {children}
+        </button>
+        <div></div>
+      </div>
+    </div>
   )
 }
 

@@ -1,3 +1,12 @@
+html, body, main, #root {
+    height:100%;
+}
+
+main {
+    /*font-family:Cambria, Cochin, Georgia, Times, 'Times New Roman', serif;*/
+    font-family:'Courier New', Courier, monospace;
+}
+
 .form-label {
     margin-right: 10px;
     /* Adjust as needed */
@@ -5,4 +14,31 @@
 
 .scrollarea {
     min-height: 500px;
+}
+
+button.button {
+    font-weight:bold;
+    padding:8.5px 25px;
+    border-radius:20px;
+    background-image: linear-gradient(90deg, rgb(85, 16, 16), rgb(85, 16, 16), rgb(36, 3, 3)) !important;
+}
+
+button.button:hover {
+    animation-name: login_hover_animation;
+    animation-duration: 0.5s;
+    background-image: linear-gradient(90deg, rgb(85, 16, 16), rgb(85, 16, 16), rgb(36, 3, 3)) !important;
+}
+
+/* The animation code */
+@keyframes login_hover_animation {
+    from
+    {
+        background-color: rgba(85, 16, 16, 0);
+        background-image: linear-gradient(90deg, rgb(85, 16, 16), rgb(85, 16, 16)) !important;
+    }
+    to 
+    {
+        background-color: rgba(85, 16, 16, 0);
+        background-image: linear-gradient(90deg, rgb(85, 16, 16), rgb(85, 16, 16), rgb(36, 3, 3)) !important;
+    }
 }

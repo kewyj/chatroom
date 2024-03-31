@@ -1,8 +1,8 @@
 .LoginPage {
     background-color: #ADD8E6;
     background-image: url('/src/assets/background.gif');
-    background-size: 100%;
-    background-repeat: repeat;
+    background-size: cover;
+    background-position: center;
     height: 100vh;
     display: flex;
     justify-content: center;
@@ -10,7 +10,7 @@
 }
 
 .ChatroomGif {
-    height: 12vh;
+    height: 8vh;
     width: auto;
 }
 
@@ -46,24 +46,4 @@
 .warning {
     line-height: 0.2;
     color: red;
-}
-
-.chat-background {
-    background-image: url('/src/assets/chatbackground.gif');
-    background-size: cover;
-    background-repeat: repeat;
-}
-
-.username-glitter {
-    animation: glitter 0.2s infinite alternate;
-}
-
-@keyframes glitter {
-    0% {
-        border-color: mediumorchid;
-    }
-
-    100% {
-        border-color: lavender;
-    }
 }

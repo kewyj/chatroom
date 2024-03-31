@@ -77,7 +77,7 @@ const CreateRoomButton = ({ children }: Props) => {
   };
 
   return (
-    <button id="create_new" onClick={handleClick}>
+    <button id="create_new" className="button" onClick={handleClick}>
       {children}
     </button>
   )

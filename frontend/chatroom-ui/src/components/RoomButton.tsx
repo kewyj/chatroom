@@ -1,12 +1,8 @@
-import Axios from "axios";
 import React from "react";
 import { useState } from 'react';
 import { useNavigate } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 import { GET_USER_ID } from "../action_types";
-import { setUsername } from '../actions';
-
-import config from '../config.json';
 
 import 'bootstrap/dist/css/bootstrap.min.css';
 import '../styles/components/roomButton.css'

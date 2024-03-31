@@ -11,12 +11,14 @@ const LoginPage: React.FunctionComponent<LoginProps> = () => {
     //const [userID, setuserID] = useState("");
 
     return (
-        <div className='LoginPage'>
-            <div className='loginContainer'>
-                <img src={chatroomLogo} alt = 'Logo' className = 'ChatroomGif'/>
-                <LoginButton> Enter </LoginButton>
+        <main className="login_background">
+            <div className='LoginPage'>
+                <div className='loginContainer'>
+                    <img src={chatroomLogo} alt = 'Logo' className = 'ChatroomGif'/>
+                    <LoginButton> Enter </LoginButton>
+                </div>
             </div>
-        </div>
+        </main>
     );
 };
 

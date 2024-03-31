@@ -1,16 +1,8 @@
-html, body, main, #root {
-    height:100%;
-}
-
 .room_background {
     background-image: url('/src/assets/background.gif');
     background-size: cover;
     background-repeat: repeat;
-}
-
-main {
-    /*font-family:Cambria, Cochin, Georgia, Times, 'Times New Roman', serif;*/
-    font-family:'Courier New', Courier, monospace;
+    background-position: center;
 }
 
 section:first-child {
@@ -30,10 +22,6 @@ section:first-child p {
 input {
     padding:2px 5px;
     background-color:rgb(224, 224, 224);
-}
-
-#clock {
-    margin-bottom:10px;
 }
 
 #clock p {

@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
-import { TimerExample } from "../SpamTimer";
 import { useNavigate } from "react-router-dom";
 
 import AppState from "../store";
@@ -163,7 +162,7 @@ const RoomListPage: React.FunctionComponent<ChatProps> = () => {
       <section className="container">
         <div className="row p-3" id="create_room">
           <div className="col-lg-4 d-flex">
-            <CreateRoomButton>New Chapter</CreateRoomButton>
+            <CreateRoomButton>New Chatroom</CreateRoomButton>
           </div>
         </div>
         <div className="row p-3" id="rooms_list">
@@ -200,7 +199,7 @@ const RoomListPage: React.FunctionComponent<ChatProps> = () => {
   //       {receivedChatrooms.map((chatroom) => (
   //         <RoomButton
   //           key={chatroom.chatroomID}
-  //           title={`Chatroom ${chatroom.chatroomID}`}
+  //           title={`Cabin ${chatroom.chatroomID}`}
   //           users={chatroom.users}
   //         />
   //       ))}
