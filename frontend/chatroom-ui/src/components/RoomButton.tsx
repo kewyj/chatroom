@@ -12,14 +12,11 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import '../styles/components/roomButton.css'
 
 interface Props {
-  children: {
-    id: number;
     title: string;
     users: number;
-  }
 }
 
-const RoomButton = ({ children : { id, title, users }}: Props) => {
+const RoomButton: React.FC<Props> = ({ title, users }) => {
   const [username, setUsernameState] = useState("");
   const navigate = useNavigate();
   const dispatch = useDispatch();
@@ -40,6 +37,15 @@ const RoomButton = ({ children : { id, title, users }}: Props) => {
       const response = await Axios.put(url);
       const newUserID = response.data;
 
+      // const newUserResponse = await fetch(`https://1bs9qf5xn1.execute-api.ap-southeast-1.amazonaws.com/newuser`, {
+      //   method: 'PUT',
+      //   headers: {
+      //       'Content-Type': 'application/json',
+      //   },
+      //   body: JSON.stringify(
+      //       dataToSend)
+      // });
+
       // Dispatch an action to update the store with new userID
       dispatch({ type: GET_USER_ID, payload: newUserID });
 
@@ -53,7 +59,6 @@ const RoomButton = ({ children : { id, title, users }}: Props) => {
   return (
     <button className="enter_room" onClick={handleClick}>
       <div>
-        <caption>Chapter {id}</caption>
         <h4>{title}</h4>
         <p>{users} active users</p>
       </div>

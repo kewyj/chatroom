@@ -51,7 +51,7 @@ const RoomListPage: React.FunctionComponent<ChatProps> = () => {
   const username = useSelector((state: AppState) => state.username);
   const [currentClock, setClock] = useState<HomeClock>();
   // To update and edit when database is up
-  //const [receivedChatrooms, setReceivedChatrooms] = useState<Chatrooms[]>([]);
+  const [receivedChatrooms, setReceivedChatrooms] = useState<Chatrooms[]>([]);
 
   // when user comes here check if have userid, dont have, navigate to first page
   const navigate = useNavigate();
@@ -101,47 +101,49 @@ const RoomListPage: React.FunctionComponent<ChatProps> = () => {
   }, []);
 
   // To update and edit when database is up
-  // useEffect(() => {
-  //   // Fetch messages from the server and update receivedMessages state
-  //   fetchChatroomsFromServer();
+  useEffect(() => {
+    // Fetch messages from the server and update receivedMessages state
+    fetchChatroomsFromServer();
 
-  //   // Update chatrooms every 5 seconds
-  //   const intervalId = setInterval(fetchChatroomsFromServer, 5000);
+    // Update chatrooms every 5 seconds
+    const intervalId = setInterval(fetchChatroomsFromServer, 5000);
 
-  //   // Clear interval
-  //   return () => {
-  //       clearInterval(intervalId);
-  //   };
-  // }, []);
+    // Clear interval
+    return () => {
+        clearInterval(intervalId);
+    };
+  }, []);
 
-  // To update and edit when database is up
-  // const fetchChatroomsFromServer = async () => {
-  //   try {
-  //     const url = `http://${host}:${port}/rooms`;
+  //To update and edit when database is up
+  const fetchChatroomsFromServer = async () => {
+    try {
+      const roomsResponse =  await fetch(`https://1bs9qf5xn1.execute-api.ap-southeast-1.amazonaws.com/rooms`, {
+        method: 'GET',
+        headers: {
+            'Content-Type': 'application/json',
+        }
+      });
 
-  //     const response = await fetch(url, {
-  //       method: "GET",
-  //       headers: {
-  //         "Content-Type": "application/json",
-  //       },
-  //     });
-  //     if (!response.ok) {
-  //       throw new Error("Failed to fetch messages");
-  //     }
-  //     const data = await response.json();
+      //Check if server response was null before calling state change
+      if (!roomsResponse.ok) {
+          throw new Error('Failed to fetch response from /chat');
+      }
 
-  //     // CHEck if server response was null before calling state change
-  //     // if (!json)
-  //     //     return;
+      const roomsData = await roomsResponse.json();
 
-  //     // UPDATE AND RENDER THE AVAILABLE CHATROOMS + USERS
-  //     if (Array.isArray(data)) {
-  //       setReceivedChatrooms(data);
-  //     }
-  //   } catch (error) {
-  //     console.error("Error fetching messages:", error);
-  //   }
-  // };
+      // UPDATE AND RENDER THE AVAILABLE CHATROOMS + USERS
+      if (Array.isArray(roomsData)) {
+        const constructChatrooms = roomsData.map(room => ({
+          chatroomID: room.chatroom_id,
+          users: room.num_users
+        }))
+        setReceivedChatrooms(constructChatrooms);
+      }
+
+    } catch (error) {
+      console.error("Error fetching messages:", error);
+    }
+  };
 
   return (
     <main className="room_background">
@@ -161,30 +163,24 @@ const RoomListPage: React.FunctionComponent<ChatProps> = () => {
       <section className="container">
         <div className="row p-3" id="create_room">
           <div className="col-lg-4 d-flex">
-            <CreateRoomButton>New Chapter</CreateRoomButton>
+            <CreateRoomButton>New Chatroom</CreateRoomButton>
           </div>
         </div>
         <div className="row p-3" id="rooms_list">
           <div className="col-lg-12 d-flex flex-column align-items-stretch flex-shrink-8">
-            <RoomButton>
-              {{ id: 1, title: "Chatroom Name 1", users: 120 }}
-            </RoomButton>
-            <RoomButton>
-              {{ id: 2, title: "Chatroom Name 2", users: 30 }}
-            </RoomButton>
-            <RoomButton>
-              {{ id: 3, title: "Chatroom Name 3", users: 12 }}
-            </RoomButton>
-            <RoomButton>
-              {{ id: 4, title: "Chatroom Name 4", users: 8 }}
-            </RoomButton>
+            {receivedChatrooms.map((chatroom) => (
+              <RoomButton key={chatroom.chatroomID}
+                title={`Chatroom ${chatroom.chatroomID}`}
+                users={chatroom.users}
+              />
+          ))}
           </div>
         </div>
       </section>
     </main>
   );
 
-  // To update and edit when database is up
+  // // To update and edit when database is up
   // return (
   //   <main className="room_background">
   //     <section className="container">
