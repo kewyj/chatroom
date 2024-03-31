@@ -163,14 +163,14 @@ const RoomListPage: React.FunctionComponent<ChatProps> = () => {
       <section className="container">
         <div className="row p-3" id="create_room">
           <div className="col-lg-4 d-flex">
-            <CreateRoomButton>New Chatroom</CreateRoomButton>
+            <CreateRoomButton>New Chapter</CreateRoomButton>
           </div>
         </div>
         <div className="row p-3" id="rooms_list">
           <div className="col-lg-12 d-flex flex-column align-items-stretch flex-shrink-8">
             {receivedChatrooms.map((chatroom) => (
               <RoomButton key={chatroom.chatroomID}
-                title={`Chatroom ${chatroom.chatroomID}`}
+                title={chatroom.chatroomID}
                 users={chatroom.users}
               />
           ))}

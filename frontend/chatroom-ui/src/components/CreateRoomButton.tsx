@@ -65,12 +65,11 @@ const CreateRoomButton = ({ children }: Props) => {
       });
 
       const newUserID = await newUserResponse.json();
-      console.log(newUserID.user_uuid);
+      console.log(`${newUserID.user_uuid} is the user's uuid`);
 
       // Dispatch an action to update the store with new userID
-      //dispatch({ type: GET_USER_ID, payload: newUserID });
-
-      navigate('/chat');
+      dispatch({ type: GET_USER_ID, payload: newUserID });
+      //navigate('/chat');
     }
     catch (error) {
         console.error("Error fetching data:", error);
