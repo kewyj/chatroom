@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"log"
+	"net/http"
 
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/kewyj/chatroom/controller"
@@ -23,6 +24,19 @@ func NewLambdaWrapper(c controller.Controller) *LambdaHandler {
 func (l *LambdaHandler) LambdaHandler(ctx context.Context, request events.APIGatewayV2HTTPRequest) (events.APIGatewayV2HTTPResponse, error) {
 	log.Println("Request Path: ", request.RequestContext.HTTP.Path)
 	log.Println("Request Method: ", request.RequestContext.HTTP.Method)
+
+	if request.RequestContext.HTTP.Method == "OPTIONS" {
+		return events.APIGatewayV2HTTPResponse{
+			StatusCode: http.StatusOK,
+			Headers: map[string]string{
+				"Access-Control-Allow-Headers":     "Content-Type, X-AMZ-DATE, Authorization, X-Api-Key, X-Amz-Security-Token",
+				"Access-Control-Allow-Origin":      "*",
+				"Access-Control-Allow-Methods":     "OPTIONS, GET, POST, PUT, DELETE",
+				"Access-Control-Allow-Credentials": "true",
+			},
+			Body: "",
+		}, nil
+	}
 
 	switch request.RequestContext.HTTP.Path {
 
@@ -62,10 +76,20 @@ func (l *LambdaHandler) LambdaHandler(ctx context.Context, request events.APIGat
 		}
 
 	default:
-		return events.APIGatewayV2HTTPResponse{StatusCode: 404}, nil
+		return events.APIGatewayV2HTTPResponse{
+			StatusCode: 404,
+			Headers: map[string]string{
+				"Access-Control-Allow-Origin": "*",
+			},
+		}, nil
 	}
 
-	return events.APIGatewayV2HTTPResponse{StatusCode: 405}, nil
+	return events.APIGatewayV2HTTPResponse{
+		StatusCode: 405,
+		Headers: map[string]string{
+			"Access-Control-Allow-Origin": "*",
+		},
+	}, nil
 }
 
 func (l *LambdaHandler) Rooms(request events.APIGatewayV2HTTPRequest) (events.APIGatewayV2HTTPResponse, error) {
@@ -73,19 +97,32 @@ func (l *LambdaHandler) Rooms(request events.APIGatewayV2HTTPRequest) (events.AP
 
 	rooms, err := l.controller.GetRooms()
 	if err != nil {
-		return events.APIGatewayV2HTTPResponse{StatusCode: 500}, err
+		return events.APIGatewayV2HTTPResponse{
+			StatusCode: 500,
+			Headers: map[string]string{
+				"Access-Control-Allow-Origin": "*",
+			},
+		}, err
 	}
 
 	roomsJSON, err := json.Marshal(rooms)
 	if err != nil {
-		return events.APIGatewayV2HTTPResponse{StatusCode: 500}, err
+		return events.APIGatewayV2HTTPResponse{
+			StatusCode: 500,
+			Headers: map[string]string{
+				"Access-Control-Allow-Origin": "*",
+			},
+		}, err
 	}
 
 	response := events.APIGatewayV2HTTPResponse{
 		StatusCode: 200,
 		Body:       string(roomsJSON),
 		Headers: map[string]string{
-			"Content-Type": "application/json",
+			"Content-Type":                 "application/json",
+			"Access-Control-Allow-Origin":  "*",
+			"Access-Control-Allow-Methods": "*",
+			"Access-Control-Allow-Headers": "*",
 		},
 	}
 
@@ -97,7 +134,12 @@ func (l *LambdaHandler) NewRoom(request events.APIGatewayV2HTTPRequest) (events.
 
 	roomid, err := l.controller.AddRoom()
 	if err != nil {
-		return events.APIGatewayV2HTTPResponse{StatusCode: 500}, err
+		return events.APIGatewayV2HTTPResponse{
+			StatusCode: 500,
+			Headers: map[string]string{
+				"Access-Control-Allow-Origin": "*",
+			},
+		}, err
 	}
 
 	roomidResponse := model.NewRoomResponse{
@@ -106,14 +148,22 @@ func (l *LambdaHandler) NewRoom(request events.APIGatewayV2HTTPRequest) (events.
 
 	roomidJSON, err := json.Marshal(roomidResponse)
 	if err != nil {
-		return events.APIGatewayV2HTTPResponse{StatusCode: 500}, err
+		return events.APIGatewayV2HTTPResponse{
+			StatusCode: 500,
+			Headers: map[string]string{
+				"Access-Control-Allow-Origin": "*",
+			},
+		}, err
 	}
 
 	response := events.APIGatewayV2HTTPResponse{
 		StatusCode: 200,
 		Body:       string(roomidJSON),
 		Headers: map[string]string{
-			"Content-Type": "application/json",
+			"Content-Type":                 "application/json",
+			"Access-Control-Allow-Origin":  "*",
+			"Access-Control-Allow-Methods": "*",
+			"Access-Control-Allow-Headers": "*",
 		},
 	}
 
@@ -125,12 +175,22 @@ func (l *LambdaHandler) NewUser(request events.APIGatewayV2HTTPRequest) (events.
 
 	user, err := l.UnmarshalNewUser(request.Body)
 	if err != nil {
-		return events.APIGatewayV2HTTPResponse{StatusCode: 500}, err
+		return events.APIGatewayV2HTTPResponse{
+			StatusCode: 500,
+			Headers: map[string]string{
+				"Access-Control-Allow-Origin": "*",
+			},
+		}, err
 	}
 
 	uuid, err := l.controller.AddUser(user)
 	if err != nil {
-		return events.APIGatewayV2HTTPResponse{StatusCode: 500}, err
+		return events.APIGatewayV2HTTPResponse{
+			StatusCode: 500,
+			Headers: map[string]string{
+				"Access-Control-Allow-Origin": "*",
+			},
+		}, err
 	}
 
 	uuidResponse := model.NewUserResponse{
@@ -139,14 +199,22 @@ func (l *LambdaHandler) NewUser(request events.APIGatewayV2HTTPRequest) (events.
 
 	uuidJSON, err := json.Marshal(uuidResponse)
 	if err != nil {
-		return events.APIGatewayV2HTTPResponse{StatusCode: 500}, err
+		return events.APIGatewayV2HTTPResponse{
+			StatusCode: 500,
+			Headers: map[string]string{
+				"Access-Control-Allow-Origin": "*",
+			},
+		}, err
 	}
 
 	response := events.APIGatewayV2HTTPResponse{
 		StatusCode: 200,
 		Body:       string(uuidJSON),
 		Headers: map[string]string{
-			"Content-Type": "application/json",
+			"Content-Type":                 "application/json",
+			"Access-Control-Allow-Origin":  "*",
+			"Access-Control-Allow-Methods": "*",
+			"Access-Control-Allow-Headers": "*",
 		},
 	}
 
@@ -158,15 +226,33 @@ func (l *LambdaHandler) Chat(request events.APIGatewayV2HTTPRequest) (events.API
 
 	msg, err := l.UnmarshalMessageRequest(request.Body)
 	if err != nil {
-		return events.APIGatewayV2HTTPResponse{StatusCode: 500}, err
+		return events.APIGatewayV2HTTPResponse{
+			StatusCode: 500,
+			Headers: map[string]string{
+				"Access-Control-Allow-Origin": "*",
+			},
+		}, err
 	}
 
 	err = l.controller.SendMessage(msg)
 	if err != nil {
-		return events.APIGatewayV2HTTPResponse{StatusCode: 500}, err
+		return events.APIGatewayV2HTTPResponse{
+			StatusCode: 500,
+			Headers: map[string]string{
+				"Access-Control-Allow-Origin": "*",
+			},
+		}, err
 	}
 
-	return events.APIGatewayV2HTTPResponse{StatusCode: 200}, nil
+	return events.APIGatewayV2HTTPResponse{
+		StatusCode: 200,
+		Headers: map[string]string{
+			"Content-Type":                 "application/json",
+			"Access-Control-Allow-Origin":  "*",
+			"Access-Control-Allow-Methods": "*",
+			"Access-Control-Allow-Headers": "*",
+		},
+	}, nil
 }
 
 func (l *LambdaHandler) Poll(request events.APIGatewayV2HTTPRequest) (events.APIGatewayV2HTTPResponse, error) {
@@ -174,24 +260,42 @@ func (l *LambdaHandler) Poll(request events.APIGatewayV2HTTPRequest) (events.API
 
 	pollReq, err := l.UnmarshalPollRequest(request.Body)
 	if err != nil {
-		return events.APIGatewayV2HTTPResponse{StatusCode: 500}, err
+		return events.APIGatewayV2HTTPResponse{
+			StatusCode: 500,
+			Headers: map[string]string{
+				"Access-Control-Allow-Origin": "*",
+			},
+		}, err
 	}
 
 	messages, err := l.controller.Poll(pollReq)
 	if err != nil {
-		return events.APIGatewayV2HTTPResponse{StatusCode: 500}, err
+		return events.APIGatewayV2HTTPResponse{
+			StatusCode: 500,
+			Headers: map[string]string{
+				"Access-Control-Allow-Origin": "*",
+			},
+		}, err
 	}
 
 	messagesJSON, err := json.Marshal(messages)
 	if err != nil {
-		return events.APIGatewayV2HTTPResponse{StatusCode: 500}, err
+		return events.APIGatewayV2HTTPResponse{
+			StatusCode: 500,
+			Headers: map[string]string{
+				"Access-Control-Allow-Origin": "*",
+			},
+		}, err
 	}
 
 	response := events.APIGatewayV2HTTPResponse{
 		StatusCode: 200,
 		Body:       string(messagesJSON),
 		Headers: map[string]string{
-			"Content-Type": "application/json",
+			"Content-Type":                 "application/json",
+			"Access-Control-Allow-Origin":  "*",
+			"Access-Control-Allow-Methods": "*",
+			"Access-Control-Allow-Headers": "*",
 		},
 	}
 
@@ -203,15 +307,33 @@ func (l *LambdaHandler) Exit(request events.APIGatewayV2HTTPRequest) (events.API
 
 	msg, err := l.UnmarshalExitRequest(request.Body)
 	if err != nil {
-		return events.APIGatewayV2HTTPResponse{StatusCode: 500}, err
+		return events.APIGatewayV2HTTPResponse{
+			StatusCode: 500,
+			Headers: map[string]string{
+				"Access-Control-Allow-Origin": "*",
+			},
+		}, err
 	}
 
 	err = l.controller.RemoveUser(msg)
 	if err != nil {
-		return events.APIGatewayV2HTTPResponse{StatusCode: 500}, err
+		return events.APIGatewayV2HTTPResponse{
+			StatusCode: 500,
+			Headers: map[string]string{
+				"Access-Control-Allow-Origin": "*",
+			},
+		}, err
 	}
 
-	return events.APIGatewayV2HTTPResponse{StatusCode: 200}, nil
+	return events.APIGatewayV2HTTPResponse{
+		StatusCode: 200,
+		Headers: map[string]string{
+			"Content-Type":                 "application/json",
+			"Access-Control-Allow-Origin":  "*",
+			"Access-Control-Allow-Methods": "*",
+			"Access-Control-Allow-Headers": "*",
+		},
+	}, nil
 }
 
 func (l *LambdaHandler) Clear(request events.APIGatewayV2HTTPRequest) (events.APIGatewayV2HTTPResponse, error) {
@@ -219,15 +341,33 @@ func (l *LambdaHandler) Clear(request events.APIGatewayV2HTTPRequest) (events.AP
 
 	msg, err := l.UnmarshalClearRequest(request.Body)
 	if err != nil {
-		return events.APIGatewayV2HTTPResponse{StatusCode: 500}, err
+		return events.APIGatewayV2HTTPResponse{
+			StatusCode: 500,
+			Headers: map[string]string{
+				"Access-Control-Allow-Origin": "*",
+			},
+		}, err
 	}
 
 	err = l.controller.ClearAll(msg.Password)
 	if err != nil {
-		return events.APIGatewayV2HTTPResponse{StatusCode: 500}, err
+		return events.APIGatewayV2HTTPResponse{
+			StatusCode: 500,
+			Headers: map[string]string{
+				"Access-Control-Allow-Origin": "*",
+			},
+		}, err
 	}
 
-	return events.APIGatewayV2HTTPResponse{StatusCode: 200}, nil
+	return events.APIGatewayV2HTTPResponse{
+		StatusCode: 200,
+		Headers: map[string]string{
+			"Content-Type":                 "application/json",
+			"Access-Control-Allow-Origin":  "*",
+			"Access-Control-Allow-Methods": "*",
+			"Access-Control-Allow-Headers": "*",
+		},
+	}, nil
 }
 
 func (l *LambdaHandler) UnmarshalNewUser(body string) (model.NewUserRequest, error) {
