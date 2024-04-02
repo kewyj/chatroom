@@ -7,13 +7,12 @@
 
 @keyframes fadeInAndZoom {
     0% {
-        opacity: 0.3;
+        opacity: 0.5;
         transform: scale(1);
     }
 
-    25% {
+    /* 25% {
         opacity: 0.75;
-        transform: scale(1);
     }
 
     50% {
@@ -22,12 +21,11 @@
 
     75% {
         opacity: 0.9;
-        transform: scale(1.1);
-    }
+    } */
 
     100% {
         opacity: 1;
-        transform: scale(1.1);
+        transform: scale(1.2);
     }
 }
 
