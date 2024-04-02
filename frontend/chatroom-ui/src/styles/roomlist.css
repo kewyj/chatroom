@@ -1,11 +1,52 @@
 .room_background {
-    background-image: url('/src/assets/roomlist_background.gif');
+    /* background-image: url('/src/assets/roomlist_background.gif'); */
     background-size: cover;
     background-repeat: repeat;
     background-position: center;
 }
 
+@keyframes fadeInAndZoom {
+    0% {
+        opacity: 0.3;
+        transform: scale(1);
+    }
+
+    25% {
+        opacity: 0.75;
+        transform: scale(1);
+    }
+
+    50% {
+        opacity: 0.75;
+    }
+
+    75% {
+        opacity: 0.9;
+        transform: scale(1.1);
+    }
+
+    100% {
+        opacity: 1;
+        transform: scale(1.1);
+    }
+}
+
 .animate_roomlist_background {
+    background-image: url('/src/assets/roomlist_background.gif');
+    background-size: cover;
+    background-repeat: repeat;
+    background-position: center;
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    animation: fadeInAndZoom 3s forwards;
+    /* Total animation time */
+    z-index: -1;
+}
+
+/* .animate_roomlist_background {
     background-image: url('/src/assets/login_background.gif');
     background-size: cover;
     background-repeat: repeat;
@@ -18,7 +59,7 @@
     animation: enter_room_list 2s;
     opacity: 0;
     z-index: -1;
-}
+} */
 
 @keyframes enter_room_list {
     0% {
@@ -33,43 +74,45 @@
 }
 
 section:first-child {
-    padding-top:100px;
+    padding-top: 100px;
 }
 
 section:nth-child(2) {
-    padding-bottom:5vh;
+    padding-bottom: 5vh;
 }
 
 section:first-child p {
-    margin:0;
-    padding-top:5px;
-    padding-right:20px;
+    margin: 0;
+    padding-top: 5px;
+    padding-right: 20px;
 }
 
 #clock p {
-    font-weight:normal;
-    color:lightgrey;
-    padding:0px;
+    font-weight: normal;
+    color: lightgrey;
+    padding: 0px;
 }
 
 #greetings p {
-    font-weight:bold;
-    color:white;
+    font-weight: bold;
+    color: white;
 }
 
 #rooms_list {
-    overflow-y:scroll;
-    max-height:50vh;
-    padding-top:0px !important;
+    overflow-y: scroll;
+    max-height: 50vh;
+    padding-top: 0px !important;
 }
 
 /* Hide scrollbar for Chrome, Safari and Opera */
 #rooms_list::-webkit-scrollbar {
-    display:none;
+    display: none;
 }
-  
+
 /* Hide scrollbar for IE, Edge and Firefox */
 #rooms_list {
-    -ms-overflow-style:none;  /* IE and Edge */
-    scrollbar-width:none;  /* Firefox */
+    -ms-overflow-style: none;
+    /* IE and Edge */
+    scrollbar-width: none;
+    /* Firefox */
 }

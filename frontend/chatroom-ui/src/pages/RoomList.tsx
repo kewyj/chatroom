@@ -55,6 +55,7 @@ const RoomListPage: React.FunctionComponent<ChatProps> = () => {
   const [currentClock, setClock] = useState<HomeClock>();
   // To update and edit when database is up
   const [receivedChatrooms, setReceivedChatrooms] = useState<Chatrooms[]>([]);
+  const [zoomIn, setZoomIn] = useState(false);
 
   // when user comes here check if have userid, dont have, navigate to first page
   const navigate = useNavigate();
@@ -91,6 +92,15 @@ const RoomListPage: React.FunctionComponent<ChatProps> = () => {
     }
   };
 
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setZoomIn(true);
+    }, 2000);
+
+    return () => clearTimeout(timer);
+    
+  }, []);
+  
   useEffect(() => {
     getTime();
 
@@ -149,39 +159,43 @@ const RoomListPage: React.FunctionComponent<ChatProps> = () => {
   };
 
   return (
-    <main className="room_background">
-      <section className="container">
-        <div className="row p-3" id="clock">
-          <div className="col-lg-4">
-            <p>{currentClock?.date}</p>
-            <p>{currentClock?.time}</p>
-          </div>
-        </div>
-        <div className="row p-3" id="greetings">
-          <div className="col-lg-4 d-flex">
-            <p>Hello, {username}</p>
-          </div>
-        </div>
-      </section>
-      <section className="container">
-        <div className="row p-3" id="create_room">
-          <div className="col-lg-4 d-flex">
-            <CreateRoomButton>New Chatroom</CreateRoomButton>
-          </div>
-        </div>
-        <div className="row p-3" id="rooms_list">
-          <div className="col-lg-12 d-flex flex-column align-items-stretch flex-shrink-8">
-            {receivedChatrooms.map((chatroom) => (
-              <RoomButton key={chatroom.chatroomID}
-                title={chatroom.chatroomID}
-                users={chatroom.users}
-              />
-          ))}
-          </div>
-        </div>
-      </section>
-      <div className="animate_roomlist_background"></div>
-    </main>
+    <div>
+      <div className={`animate_roomlist_background ${zoomIn ? 'zoomInBackground' : ''}`}>
+      </div>
+        <main className="room_background">
+          <section className="container">
+            <div className="row p-3" id="clock">
+              <div className="col-lg-4">
+                <p>{currentClock?.date}</p>
+                <p>{currentClock?.time}</p>
+              </div>
+            </div>
+            <div className="row p-3" id="greetings">
+              <div className="col-lg-4 d-flex">
+                <p>Hello, {username}</p>
+              </div>
+            </div>
+          </section>
+          <section className="container">
+            <div className="row p-3" id="create_room">
+              <div className="col-lg-4 d-flex">
+                <CreateRoomButton>New Chatroom</CreateRoomButton>
+              </div>
+            </div>
+            <div className="row p-3" id="rooms_list">
+              <div className="col-lg-12 d-flex flex-column align-items-stretch flex-shrink-8">
+                {receivedChatrooms.map((chatroom) => (
+                  <RoomButton key={chatroom.chatroomID}
+                    title={chatroom.chatroomID}
+                    users={chatroom.users}
+                  />
+              ))}
+              </div>
+            </div>
+          </section>
+          <div className="animate_roomlist_background"></div>
+          </main>
+    </div>
   );
 
   // // To update and edit when database is up

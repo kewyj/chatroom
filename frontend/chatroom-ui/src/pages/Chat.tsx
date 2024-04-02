@@ -416,7 +416,7 @@ const ChatPage: React.FunctionComponent<ChatProps> = () => {
                         <h3>&lt;</h3>
                     </div>
                     <div className="col-lg-11">
-                        <h3>Chatroom Name</h3>
+                        <h3>{chatID}</h3>
                         <span>✉</span>
                     </div>
                 </div>
