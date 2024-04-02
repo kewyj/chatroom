@@ -12,12 +12,12 @@ const LoginPage: React.FunctionComponent<LoginProps> = () => {
 
     return (
         <main className="login_background">
-            <div className='LoginPage'>
+            <section className='LoginPage'>
                 <div className='loginContainer'>
                     <img src={chatroomLogo} alt = 'Logo' className = 'ChatroomGif'/>
                     <LoginButton> Enter </LoginButton>
                 </div>
-            </div>
+            </section>
         </main>
     );
 };

@@ -404,42 +404,58 @@ const ChatPage: React.FunctionComponent<ChatProps> = () => {
     // }
 
     return (
-        <div className="chat-background">
-            <div className="d-flex flex-column align-items-stretch flex-shrink-8">
-                <div className={`d-flex align-items-center flex-shrink-8 p-3 link-dark text-decoration-none border-bottom `}>
-                    <input
-                        className={`fs-5 fw-semibold ${isGlittering ? 'username-glitter' : ''}`}
-                        style={{
-                            borderColor: 'mediumorchid',
-                            fontSize: '20px',
-                            color: (typeof usernameToSend === 'string' ? (usernameColors[usernameToSend]?.substring(0, 4) || '#000000') : '#000000'),
-                            fontWeight: 'bold'
-                        }}
-                        value={customUsername}
-                        readOnly
-                    />
-                </div>
-                {receivedMessages && receivedMessages.length > 0 && (
-                    <div className="messages-container">
-                        {receivedMessages.map((msg, index) => {
-                            return (
-                                <div key={index} className="message">
-                                    <strong style={{ color: (typeof msg.username === 'string' && msg.username.substring(0, 4) === (typeof usernameToSend === 'string' && usernameToSend.substring(0, 4))) ? (usernameColors[usernameToSend] || '#000000') : '#000000' }}>{msg.username}: </strong>{msg.content}
-                                </div>
-                            );
-                        })}
+        <main className="chat_background">
+            <section className="container d-flex">
+                <div className="row p-3" id="chatroom_name">
+                    <div className="col-lg-1" id="back_to_roomlist">
+                        <h3>&lt;</h3>
                     </div>
-                )}
-            </div>
-            <div className='inputContainer'>
-                <form onSubmit={send}>
-                    <input className="form-control" placeholder="Say something..." value={message} onChange={handleInputChange} disabled={isVisible} />
-                </form>
-                {isVisible &&
-                    <strong className='warning'>WARNING : You are spamming!</strong>
-                }
-            </div>
-        </div>
+                    <div className="col-lg-11">
+                        <h3>Chatroom Name</h3>
+                        <span>✉</span>
+                    </div>
+                </div>
+                <div className="row p-3" id="messages_container">
+                    <div className="col-lg-12">
+                        {receivedMessages && receivedMessages.length > 0 && (
+                            <div>
+                                {receivedMessages.map((msg, index) => {
+                                    return (
+                                        <div key={index} className="message">
+                                            <strong style={{ color: (typeof msg.username === 'string' && msg.username.substring(0, 4) === (typeof usernameToSend === 'string' && usernameToSend.substring(0, 4))) ? (usernameColors[usernameToSend] || '#000000') : '#000000' }}>{msg.username}: </strong>{msg.content}
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        )}
+                    </div>
+                </div>
+                <div className="row p-3" id="textbox_container">
+                    <div className="col-lg-3" id="username">
+                        <div className={`link-dark text-decoration-none`}>
+                            <input
+                                value={customUsername}
+                                readOnly
+                            />
+                        </div>
+                    </div>
+                    <div className="col-lg-9" id="">
+                        <form onSubmit={send}>
+                            <input
+                                placeholder="Say something..."
+                                className={`${isGlittering ? 'textbox_glitter' : ''}`}
+                                value={message}
+                                onChange={handleInputChange}
+                                disabled={isVisible}
+                            />
+                        </form>
+                        {isVisible &&
+                            <strong className='warning'>WARNING : You are spamming!</strong>
+                        }
+                    </div>
+                </div>
+            </section>
+        </main>
     );
 }; 
 

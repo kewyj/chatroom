@@ -1,6 +1,6 @@
 .LoginPage {
     background-color: #ADD8E6;
-    background-image: url('/src/assets/background.gif');
+    background-image: url('/src/assets/login_background.gif');
     background-size: cover;
     background-position: center;
     height: 100vh;

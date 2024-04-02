@@ -2,30 +2,115 @@
     background-color: #e0d1e3;
 }
 
-.messages-container {
-    height: 85vh;
-}
+.chat_background {
+    background-image: url('/src/assets/chatroom_background.gif');
+    background-size: cover;
+    background-repeat: repeat;
+    height: 100%;
 
-.inputContainer {
-    display: flex;
-    flex-direction: column;
-    margin: 10px;
-    padding: 10px;
+    .container {
+        padding-top: 5vh;
+        flex-flow: column;
+        height: 100%;
+    }
+
+    #chatroom_name > div {
+        border-bottom: 1px solid #3e270b;
+
+        h3 {
+            font-weight: bold;
+            text-shadow: 1px 1px #814700;
+            display: inline-block;
+            padding-bottom: 10px;
+            padding-right: 20px;
+        }
+
+        h3 + span {
+            text-shadow: 1px 1px #814700;
+            font-size: 2rem;
+        }
+
+        &#back_to_roomlist h3 {
+            margin-top: 8px;
+
+            &:hover {
+                cursor: pointer;
+            }
+        }
+    }
+
+    .input_container {
+        display: flex;
+        flex-direction: column;
+        margin: 10px;
+        padding: 10px;
+    }
+
+    #messages_container {
+        flex-grow: 1;
+        background-color: rgba(255, 207, 207, 0.55);
+        border-radius: 50px;
+        overflow: scroll;
+
+        > div {
+            overflow-y: scroll;
+        }
+
+        /* Hide scrollbar for Chrome, Safari and Opera */
+        ::-webkit-scrollbar {
+            display:none;
+        }
+        
+        /* Hide scrollbar for IE, Edge and Firefox */
+        -ms-overflow-style:none;  /* IE and Edge */
+        scrollbar-width:none;  /* Firefox */
+    }
+
+    #textbox_container {
+        #username input {
+            color: #b57777;
+
+            &:hover {
+                cursor: default;
+            }
+        }
+
+        input {
+            color: #959595;
+            width: 100%;
+            padding: 10px 15px;
+            background-color: rgba(55, 6, 6, 0.5);
+            border: 2px solid rgb(55, 6, 6);
+            border-radius: 25px;
+
+            &::placeholder {
+                color: #959595;
+                opacity: 1; /* Firefox */
+            }
+            
+            &::-ms-input-placeholder { /* Edge 12 -18 */
+                color: #959595;
+            }
+        }
+
+        input:focus {
+            outline:none;
+            background-color: rgba(55, 6, 6, 0.65);
+            border: 2px solid rgb(47, 4, 4);
+            color: #dadada;
+            
+            &.textbox_glitter {
+                border-color: 'mediumorchid';
+                animation: glitter 0.2s infinite alternate;
+            }
+
+        }
+    }
 }
 
 .warning {
     line-height: 0.2;
     color: red;
-}
-
-.chat-background {
-    background-image: url('/src/assets/chatbackground.gif');
-    background-size: cover;
-    background-repeat: repeat;
-}
-
-.username-glitter {
-    animation: glitter 0.2s infinite alternate;
 }
 
 @keyframes glitter {
