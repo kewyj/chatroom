@@ -439,7 +439,7 @@ const ChatPage: React.FunctionComponent<ChatProps> = () => {
                             />
                         </div>
                     </div>
-                    <div className="col-lg-9" id="">
+                    <div className="col-lg-9" id="input_box">
                         <form onSubmit={send}>
                             <input
                                 placeholder="Say something..."
@@ -448,6 +448,7 @@ const ChatPage: React.FunctionComponent<ChatProps> = () => {
                                 onChange={handleInputChange}
                                 disabled={isVisible}
                             />
+                            <span>↵</span>
                         </form>
                         {isVisible &&
                             <strong className='warning'>WARNING : You are spamming!</strong>

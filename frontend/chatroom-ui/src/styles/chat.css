@@ -63,13 +63,6 @@
         }
     }
 
-    .input_container {
-        display: flex;
-        flex-direction: column;
-        margin: 10px;
-        padding: 10px;
-    }
-
     #messages_container {
         flex-grow: 1;
         background-color: rgba(255, 207, 207, 0.55);
@@ -96,6 +89,18 @@
 
             &:hover {
                 cursor: default;
+            }
+        }
+
+        #input_box {
+            position: relative;
+            
+            span {
+                position: absolute;
+                top: 30%;
+                bottom: 0;
+                right: 40px;
+                color: #959595;
             }
         }
 
