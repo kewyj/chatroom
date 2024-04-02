@@ -176,6 +176,7 @@ const RoomListPage: React.FunctionComponent<ChatProps> = () => {
           </div>
         </div>
       </section>
+      <div className="animate_roomlist_background"></div>
     </main>
   );
 

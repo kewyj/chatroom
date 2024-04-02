@@ -1,5 +1,28 @@
-.form-control:focus {
-    background-color: #e0d1e3;
+.animate_enter_room_background {
+    background-image: url('/src/assets/roomlist_background.gif');
+    background-size: cover;
+    background-repeat: repeat;
+    background-position: center;
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    animation: enter_room 2s;
+    opacity: 0;
+    z-index: -1;
+}
+
+@keyframes enter_room {
+    0% {
+        opacity: 1;
+        z-index: 1;
+    }
+
+    100% {
+        opacity: 0;
+        z-index: 1;
+    }
 }
 
 .chat_background {
@@ -10,6 +33,7 @@
 
     .container {
         padding-top: 5vh;
+        padding-bottom: 5vh;
         flex-flow: column;
         height: 100%;
     }

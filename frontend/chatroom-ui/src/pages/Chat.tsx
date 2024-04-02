@@ -455,6 +455,7 @@ const ChatPage: React.FunctionComponent<ChatProps> = () => {
                     </div>
                 </div>
             </section>
+            <div className="animate_enter_room_background"></div>
         </main>
     );
 }; 

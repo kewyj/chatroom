@@ -5,11 +5,38 @@
     background-position: center;
 }
 
+.animate_roomlist_background {
+    background-image: url('/src/assets/login_background.gif');
+    background-size: cover;
+    background-repeat: repeat;
+    background-position: center;
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    animation: enter_room_list 2s;
+    opacity: 0;
+    z-index: -1;
+}
+
+@keyframes enter_room_list {
+    0% {
+        opacity: 1;
+        z-index: 1;
+    }
+
+    100% {
+        opacity: 0;
+        z-index: 1;
+    }
+}
+
 section:first-child {
     padding-top:100px;
 }
 
-section:last-child {
+section:nth-child(2) {
     padding-bottom:5vh;
 }
 
