@@ -47,7 +47,11 @@ const predefinedColors = [
 
 const RoomListPage: React.FunctionComponent<ChatProps> = () => {
   const dispatch = useDispatch();
-  const username = useSelector((state: AppState) => state.username);
+
+  const users = localStorage.getItem('user');
+  const username = users ? JSON.parse(users) : '';
+  
+  //const username = useSelector((state: AppState) => state.username);
   const [currentClock, setClock] = useState<HomeClock>();
   // To update and edit when database is up
   const [receivedChatrooms, setReceivedChatrooms] = useState<Chatrooms[]>([]);
