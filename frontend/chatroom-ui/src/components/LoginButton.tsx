@@ -27,10 +27,12 @@ const LoginButton = ({ children }: Props) => {
   const inputRef = useRef<HTMLInputElement>(null);
   
   const handleUsernameChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const user = event.target.value
     setUsernameState(event.target.value);
   }
 
-    const handleClick = () => {
+  const handleClick = () => {
+    localStorage.setItem('user' , JSON.stringify(username.trim()))
     try {
       if (!username.trim()) {
         alert("Please enter a username.");

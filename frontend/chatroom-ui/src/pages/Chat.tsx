@@ -79,11 +79,10 @@ const ChatPage: React.FunctionComponent<ChatProps> = () => {
 
     useEffect(() => {
         const handleBeforeUnload = (event: BeforeUnloadEvent) => {
-            exitToServer();
-
-            const exitConfirmation = 'Leaving so soon? Chat will be lost.';
-            event.returnValue = exitConfirmation;
-            return exitConfirmation;
+            if (window.confirm('Leaving so soon? Chat will be lost.')) {
+                exitToServer();
+            }
+            event.preventDefault();
         };
 
         window.addEventListener('beforeunload', handleBeforeUnload);
@@ -378,7 +377,10 @@ const ChatPage: React.FunctionComponent<ChatProps> = () => {
                     dataToSend)
                 });
                 
-                const chatData = await chatResponse.json();
+            const chatData = await chatResponse.json();
+            localStorage.setItem('userDetails', JSON.stringify(chatData))
+            const users = localStorage.getItem('userDetails')
+            const username = users ? JSON.parse(users) : '';
                 
                 //console.log(data)
                 
@@ -402,6 +404,9 @@ const ChatPage: React.FunctionComponent<ChatProps> = () => {
     // } else {
     // console.log("myString is undefined");
     // }
+
+    const users = localStorage.getItem('user');
+    const username = users ? JSON.parse(users) : '';
 
     return (
         <main className="chat_background">

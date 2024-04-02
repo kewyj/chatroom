@@ -57,22 +57,20 @@ const CreateRoomButton = ({ children }: Props) => {
         chatroom_id: data.chatroom_id
       }
 
-      if (userID == null) {
-        const newUserResponse = await fetch(`https://1bs9qf5xn1.execute-api.ap-southeast-1.amazonaws.com/newuser`, {
-          method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(
-            dataToSend)
-        });
+      const newUserResponse = await fetch(`https://1bs9qf5xn1.execute-api.ap-southeast-1.amazonaws.com/newuser`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(
+          dataToSend)
+      });
 
-        const newUserID = await newUserResponse.json();
-        console.log(`${newUserID.user_uuid} is the user's uuid`);
+      const newUserID = await newUserResponse.json();
+      console.log(`${newUserID.user_uuid} is the user's uuid`);
 
-        // Dispatch an action to update the store with new userID
-        dispatch({ type: GET_USER_ID, payload: newUserID.user_uuid });
-      }
+      // Dispatch an action to update the store with new userID
+      dispatch({ type: GET_USER_ID, payload: newUserID.user_uuid });
       dispatch({ type: SET_CHATROOM_ID, payload: data.chatroom_id });
 
       navigate('/chat');

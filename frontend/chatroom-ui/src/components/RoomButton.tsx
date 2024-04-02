@@ -40,27 +40,25 @@ const RoomButton: React.FC<Props> = ({ title, users }) => {
 
       console.log(`Before get user_uuid: ${userID}`);
 
-      if (userID == null) {
-        const newUserResponse = await fetch(
-          `https://1bs9qf5xn1.execute-api.ap-southeast-1.amazonaws.com/newuser`,
-          {
-            method: "PUT",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify(dataToSend),
-          }
-        );
+      const newUserResponse = await fetch(
+        `https://1bs9qf5xn1.execute-api.ap-southeast-1.amazonaws.com/newuser`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(dataToSend),
+        }
+      );
 
-        const newUserID = await newUserResponse.json();
-        console.log(
-          `${customUsername} has made chatroom selection from /rooms`
-        );
-        console.log(newUserID.user_uuid);
+      const newUserID = await newUserResponse.json();
+      console.log(
+        `${customUsername} has made chatroom selection from /rooms`
+      );
+      console.log(newUserID.user_uuid);
 
-        // Dispatch an action to update the store with new userID
-        dispatch({ type: GET_USER_ID, payload: newUserID.user_uuid });
-      }
+      // Dispatch an action to update the store with new userID
+      dispatch({ type: GET_USER_ID, payload: newUserID.user_uuid });
 
       dispatch({ type: SET_CHATROOM_ID, payload: title });
 
