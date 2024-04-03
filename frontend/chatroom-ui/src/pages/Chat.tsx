@@ -109,7 +109,7 @@ const ChatPage: React.FunctionComponent<ChatProps> = () => {
                         SetIsReload(true);
                     }
                     //history.push('/chat');
-                    }
+                }
                 allowNavigation = false;
             }
         };
@@ -415,11 +415,17 @@ const ChatPage: React.FunctionComponent<ChatProps> = () => {
     const users = localStorage.getItem('user');
     const username = users ? JSON.parse(users) : '';
 
+    // to change when server updates
+    const handleBackToRoomList = () => {
+        exitToServer();
+        navigate('/rooms')
+    }
+
     return (
         <main className="chat_background">
             <section className="container d-flex">
                 <div className="row p-3" id="chatroom_name">
-                    <div className="col-lg-1" id="back_to_roomlist">
+                    <div className="col-lg-1" id="back_to_roomlist" onClick={handleBackToRoomList}>
                         <h3>&lt;</h3>
                     </div>
                     <div className="col-lg-11">
