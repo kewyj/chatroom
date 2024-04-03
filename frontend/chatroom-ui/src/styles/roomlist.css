@@ -3,6 +3,13 @@
     background-size: cover;
     background-repeat: repeat;
     background-position: center;
+    overflow: hidden;
+    position: relative;
+
+    > section {
+        position: relative;
+        z-index: 2;
+    }
 }
 
 @keyframes fadeInAndZoom {
@@ -44,7 +51,7 @@
     z-index: -1;
 }
 
-/* .animate_roomlist_background {
+.animate_login_background {
     background-image: url('/src/assets/login_background.gif');
     background-size: cover;
     background-repeat: repeat;
@@ -54,20 +61,28 @@
     right: 0;
     top: 0;
     bottom: 0;
-    animation: enter_room_list 2s;
+    animation: enter_room_list 6s forwards;
     opacity: 0;
     z-index: -1;
-} */
+}
 
 @keyframes enter_room_list {
     0% {
         opacity: 1;
         z-index: 1;
+        transform: scale(1);
+    }
+
+    50% {
+        opacity: 1;
+        z-index: 1;
+        transform: scale(1.2);
     }
 
     100% {
         opacity: 0;
         z-index: 1;
+        transform: scale(1.2);
     }
 }
 

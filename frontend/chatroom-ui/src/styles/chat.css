@@ -32,6 +32,8 @@
     background-size: cover;
     background-repeat: repeat;
     height: 100%;
+    overflow: hidden;
+    position: relative;
 
     .container {
         padding-top: 5vh;
