@@ -189,6 +189,11 @@ const ChatPage: React.FunctionComponent<ChatProps> = () => {
     // }, [location]);
 
     useEffect(() => {
+        var messages_container = document.getElementById("messages_container");
+        if(messages_container != null) {
+            messages_container.scrollTop = messages_container.scrollHeight;
+        }
+
         // Fetch messages from the server and update receivedMessages state
         fetchMessagesFromServer();
 
@@ -278,6 +283,11 @@ const ChatPage: React.FunctionComponent<ChatProps> = () => {
             //response.status (CHECK IF NOT 200)
             // Clear the input field after sending message
             dispatch(setMessage(''));
+
+            var messages_container = document.getElementById("messages_container");
+            if(messages_container != null) {
+                messages_container.scrollTop = messages_container.scrollHeight;
+            }
 
             //console.log(enterKeyCount);
 
@@ -456,7 +466,7 @@ const ChatPage: React.FunctionComponent<ChatProps> = () => {
                             <span>↵</span>
                         </form>
                         {isVisible &&
-                            <strong className='warning'>WARNING : You are spamming!</strong>
+                            <strong className='warning'>⚠ WARNING: You are spamming!</strong>
                         }
                     </div>
                 </div>

@@ -99,6 +99,8 @@
         }
 
         .input_container {
+            position: relative;
+
             input {
                 width: 100%;
             }
@@ -117,6 +119,9 @@
 .warning {
     line-height: 0.2;
     color: red;
+    position: absolute;
+    bottom: -20px;
+    left: 20px;
 }
 
 @keyframes glitter {
