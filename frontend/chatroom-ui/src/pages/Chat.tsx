@@ -79,10 +79,7 @@ const ChatPage: React.FunctionComponent<ChatProps> = () => {
 
     useEffect(() => {
         const handleBeforeUnload = (event: BeforeUnloadEvent) => {
-            if (window.confirm('Leaving so soon? Chat will be lost.')) {
-                exitToServer();
-            }
-            event.preventDefault();
+            exitToServer();
         };
 
         window.addEventListener('beforeunload', handleBeforeUnload);
