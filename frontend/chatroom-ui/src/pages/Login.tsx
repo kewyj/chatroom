@@ -10,11 +10,13 @@ const LoginPage: React.FunctionComponent<LoginProps> = () => {
     // make state to store the user
     //const [userID, setuserID] = useState("");
 
+    //<img src={chatroomLogo} alt = 'Logo' className = 'ChatroomGif'/>
+
     return (
         <main className="login_background">
-            <section className='LoginPage'>
-                <div className='loginContainer'>
-                    <img src={chatroomLogo} alt = 'Logo' className = 'ChatroomGif'/>
+            <section className='login_page'>
+                <div className='login_container'>
+                    <p className='logo'>FiͥlᴛⷮeͤrͬNoͦᴛⷮFoͦuͧndͩ</p>
                     <LoginButton> Enter </LoginButton>
                 </div>
             </section>

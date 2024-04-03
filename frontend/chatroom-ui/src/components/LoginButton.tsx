@@ -58,11 +58,10 @@ const LoginButton = ({ children }: Props) => {
   return (
     <div className='input_container'>
       <input 
-      ref= {inputRef}
-      type="text"
-      placeholder="Enter your username"
-      className="input"
-      value={username}
+        ref= {inputRef}
+        type="text"
+        placeholder="Enter your username"
+        value={username}
         onChange={handleUsernameChange}
         maxLength={28}
       />

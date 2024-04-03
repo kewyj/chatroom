@@ -437,14 +437,14 @@ const ChatPage: React.FunctionComponent<ChatProps> = () => {
                 </div>
                 <div className="row p-3" id="textbox_container">
                     <div className="col-lg-3" id="username">
-                        <div className={`link-dark text-decoration-none`}>
+                        <div className={`input_container link-dark text-decoration-none`}>
                             <input
                                 value={customUsername}
                                 readOnly
                             />
                         </div>
                     </div>
-                    <div className="col-lg-9" id="input_box">
+                    <div className="col-lg-9 input_container">
                         <form onSubmit={send}>
                             <input
                                 placeholder="Say something..."

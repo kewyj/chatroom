@@ -1,4 +1,4 @@
-.LoginPage {
+.login_page {
     background-color: #ADD8E6;
     background-image: url('/src/assets/login_background.gif');
     background-size: cover;
@@ -9,41 +9,19 @@
     align-items: center;
 }
 
-.ChatroomGif {
-    height: 8vh;
-    width: auto;
+.logo {
+    font-size: 3rem;
+    color: rgb(36, 3, 3);
+    font-weight: bold;
+    text-shadow: 1px 1px #814700, 2px 2px 1px rgba(55, 6, 6, .5), 3px 3px 5px white;
+    display: inline-block;
+    padding: 28px 30px 10px !important;
+    font-family: auto;
 }
 
-.loginContainer {
+.login_container {
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-}
-
-.form-control {
-    height: 40px;
-    width: 80%;
-    margin-top: auto;
-    margin-bottom: 10px;
-}
-
-.form-control:focus {
-    background-color: #e0d1e3;
-}
-
-.messages-container {
-    height: 85vh;
-}
-
-.inputContainer {
-    display: flex;
-    flex-direction: column;
-    margin: 10px;
-    padding: 10px;
-}
-
-.warning {
-    line-height: 0.2;
-    color: red;
 }

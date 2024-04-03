@@ -7,16 +7,8 @@ main {
     font-family:'Courier New', Courier, monospace;
 }
 
-.form-label {
-    margin-right: 10px;
-    /* Adjust as needed */
-}
-
-.scrollarea {
-    min-height: 500px;
-}
-
 button.button {
+    color: #cecece;
     font-weight:bold;
     padding:8.5px 25px;
     border-radius:20px;
@@ -39,5 +31,40 @@ button.button:hover {
     to 
     {
         box-shadow: 0px 2px rgba(36, 3, 3, 1);
+    }
+}
+
+.input_container {
+    position: relative;
+
+    input {
+        color: #959595;
+        padding: 10px 15px;
+        background-color: rgba(55, 6, 6, 0.5);
+        border: 2px solid rgb(55, 6, 6);
+        border-radius: 25px;
+
+        &::placeholder {
+            color: #959595;
+            opacity: 1;
+            /* Firefox */
+        }
+
+        &::-ms-input-placeholder {
+            /* Edge 12 -18 */
+            color: #959595;
+        }
+    }
+
+    input:focus {
+        outline: none;
+        background-color: rgba(55, 6, 6, 0.65);
+        border: 2px solid rgb(47, 4, 4);
+        color: #dadada;
+
+        &.textbox_glitter {
+            border-color: 'mediumorchid';
+            animation: glitter 0.2s infinite alternate;
+        }
     }
 }
