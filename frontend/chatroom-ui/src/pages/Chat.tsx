@@ -3,6 +3,7 @@ import "@fortawesome/fontawesome-free/css/all.css";
 import AppState from '../store'
 import { useSelector, useDispatch } from 'react-redux';
 import { setChatroomID, setMessage } from '../actions'
+import { GET_USER_ID } from "../action_types";
 import { TimerExample } from '../SpamTimer'
 import { unstable_useViewTransitionState, useNavigate } from 'react-router-dom';
 import { useLocation } from 'react-router-dom';
@@ -49,7 +50,7 @@ const ChatPage: React.FunctionComponent<ChatProps> = () => {
     const chatID = useSelector((state: AppState) => state.chatID);
     const customUsername = useSelector((state: AppState) => state.username);
     const [receivedMessages, setReceivedMessages] = useState<Message[]>([]);
-    const usernameToSend = userID;
+    let usernameToSend = userID;
     const [messageLimit, _setMessageLimit] = useState<number>(32); // added underscore to remove warning
     const [isVisible, setVisibility] = useState<boolean>(false);
     const [isGlittering, setIsGlittering] = useState<boolean>(true);
@@ -79,10 +80,17 @@ const ChatPage: React.FunctionComponent<ChatProps> = () => {
 
     useEffect(() => {
         const handleBeforeUnload = (event: BeforeUnloadEvent) => {
-            if (window.confirm('Leaving so soon? Chat will be lost.')) {
-                exitToServer();
-            }
-            event.preventDefault();
+            // if (window.confirm('Leaving so soon? Chat will be lost.')) {
+            //     exitToServer();
+            // }
+            // event.preventDefault();
+            console.log(`About to save uuid: ${userID}`)
+            localStorage.setItem('user_uuid', JSON.stringify(userID))
+            const getuser_uuid = localStorage.getItem('user_uuid')
+            console.log(`Saved uuid from /CHAT is: ${getuser_uuid}`)
+
+            // set a boolean that will be called for setting back username
+            localStorage.setItem('isSetUser_uuid', JSON.stringify(true))
         };
 
         window.addEventListener('beforeunload', handleBeforeUnload);
@@ -205,9 +213,22 @@ const ChatPage: React.FunctionComponent<ChatProps> = () => {
     }, []);
 
     // placing usernameToSend and navigate under the [] meant that this useEffect() function will run whenever either usernameToSend or navigate changes
+
+    const getUserDetails = localStorage.getItem('userDetails');
+    console.log(`getUserStorage is: ${getUserDetails}`)
+
     useEffect(() => {
-        if (!usernameToSend) {
+        if (!usernameToSend && !localStorage.getItem('user_uuid')) {
             navigate('/');
+        }
+        if (localStorage.getItem('isSetUser_uuid')) {
+            console.log("Came to isSetUser_uuid")
+            dispatch({ type: GET_USER_ID, payload: localStorage.getItem('user_uuid') });
+            const userUUIDFromLocalStorage = localStorage.getItem('user_uuid');
+            console.log(`userUUIDFromLocalStorage is ${userUUIDFromLocalStorage}`)
+            usernameToSend = userUUIDFromLocalStorage ?? '';;
+            //usernameToSend = localStorage.getItem('user_uuid')
+            localStorage.removeItem('isSetUser_uuid')
         }
     }, [usernameToSend, navigate]);
     
@@ -350,6 +371,9 @@ const ChatPage: React.FunctionComponent<ChatProps> = () => {
             const exitConfirmation = 'Leaving so soon?';
 
             //dispatch(setChatroomID(''));
+            console.log("Came here before reset user")
+            console.log(`chatroom_id: ${dataToSend.chatroom_id}`)
+            console.log(`user_uuid: ${dataToSend.user_uuid}`)
             //dispatch({ type: 'RESET_USER' });
 
             //window.location.reload();
