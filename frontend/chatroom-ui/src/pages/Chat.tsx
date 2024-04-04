@@ -218,10 +218,6 @@ const ChatPage: React.FunctionComponent<ChatProps> = () => {
 
     // placing usernameToSend and navigate under the [] meant that this useEffect() function will run whenever either usernameToSend or navigate changes
     useEffect(() => {
-        console.log("CAMEEEEEEEEEEEEEEEEEEEEEEEEEEEE AS INTENDEDDDDDDDDDDDDDDDDD")
-        const condition = localStorage.getItem('isExitToServerCalled')
-        console.log(`condition is ${condition}`);
-
         if (localStorage.getItem('isExitToServerCalled')) {
 
             const storedChatID = localStorage.getItem('savedChatID');

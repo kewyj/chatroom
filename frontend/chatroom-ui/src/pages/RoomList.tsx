@@ -57,6 +57,8 @@ const RoomListPage: React.FunctionComponent<ChatProps> = () => {
   const [receivedChatrooms, setReceivedChatrooms] = useState<Chatrooms[]>([]);
   const [zoomIn, setZoomIn] = useState(false);
 
+  const customUsername = useSelector((state: AppState) => state.username);
+
   // when user comes here check if have userid, dont have, navigate to first page
   const navigate = useNavigate();
 
@@ -119,7 +121,7 @@ const RoomListPage: React.FunctionComponent<ChatProps> = () => {
     fetchChatroomsFromServer();
 
     // Update chatrooms every 5 seconds
-    const intervalId = setInterval(fetchChatroomsFromServer, 5000);
+    const intervalId = setInterval(fetchChatroomsFromServer, 1000);
 
     // Clear interval
     return () => {
@@ -139,10 +141,13 @@ const RoomListPage: React.FunctionComponent<ChatProps> = () => {
 
       //Check if server response was null before calling state change
       if (!roomsResponse.ok) {
-          throw new Error('Failed to fetch response from /chat');
+        throw new Error('Failed to fetch response from /chat');
       }
-
+      
       const roomsData = await roomsResponse.json();
+
+      console.log(roomsData)
+      
 
       // UPDATE AND RENDER THE AVAILABLE CHATROOMS + USERS
       if (Array.isArray(roomsData)) {
@@ -151,6 +156,11 @@ const RoomListPage: React.FunctionComponent<ChatProps> = () => {
           users: room.num_users
         }))
         setReceivedChatrooms(constructChatrooms);
+      }
+      else
+      {
+        // clear receivedChatrooms
+        setReceivedChatrooms([])
       }
 
     } catch (error) {
@@ -169,7 +179,7 @@ const RoomListPage: React.FunctionComponent<ChatProps> = () => {
         </div>
         <div className="row p-3" id="greetings">
           <div className="col-lg-4 d-flex">
-            <p>Hello, {username}</p>
+            <p>Hello, {customUsername}</p>
           </div>
         </div>
       </section>
@@ -181,12 +191,15 @@ const RoomListPage: React.FunctionComponent<ChatProps> = () => {
         </div>
         <div className="row p-3" id="rooms_list">
           <div className="col-lg-12 d-flex flex-column align-items-stretch flex-shrink-8">
-            {receivedChatrooms.map((chatroom) => (
-              <RoomButton key={chatroom.chatroomID}
-                title={chatroom.chatroomID}
-                users={chatroom.users}
-              />
-          ))}
+            {receivedChatrooms.length > 0 ? (
+            receivedChatrooms.map((chatroom) => (
+            <RoomButton
+            key={chatroom.chatroomID}
+            title={chatroom.chatroomID}
+            users={chatroom.users}
+            />
+          ))
+          ) : null}
           </div>
         </div>
       </section>
