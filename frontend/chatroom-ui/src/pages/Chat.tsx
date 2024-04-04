@@ -8,6 +8,8 @@ import { unstable_useViewTransitionState, useNavigate } from 'react-router-dom';
 import { useLocation } from 'react-router-dom';
 import '../styles/chat.css'
 import { createBrowserHistory, Update } from 'history';
+import { GET_USER_ID, SET_CHATROOM_ID } from "../action_types";
+import { setUsername } from '../actions';
 
 export interface ChatProps { }
 
@@ -87,7 +89,6 @@ const ChatPage: React.FunctionComponent<ChatProps> = () => {
             // save data that need to be retrieve in the event of refresh and not close
             localStorage.setItem('savedChatID', JSON.stringify(chatID))
             localStorage.setItem('savedCustomUsername', JSON.stringify(customUsername))
-            localStorage.setItem('savedUsernameToSend', JSON.stringify(usernameToSend))
             
             exitToServer();
         };
@@ -222,7 +223,6 @@ const ChatPage: React.FunctionComponent<ChatProps> = () => {
 
             const storedChatID = localStorage.getItem('savedChatID');
             const storedCustomUsername = localStorage.getItem('savedCustomUsername');
-            const storedUserID = localStorage.getItem('savedUsernameToSend');
 
             if (storedChatID !== null)
             {
@@ -232,25 +232,29 @@ const ChatPage: React.FunctionComponent<ChatProps> = () => {
             {
                 customUsername = storedCustomUsername;
             }
-            if (storedUserID !== null)
-            {
-                usernameToSend = storedUserID;    
-            }
 
             console.log(`AT ISEXITTOSERVER CALLED chatID: ${chatID}`);
             console.log(`AT ISEXITTOSERVER CALLED customUsername: ${customUsername}`);
-            console.log(`AT ISEXITTOSERVER CALLED usernameToSend: ${usernameToSend}`);
 
             // remove all 3 stored info as no longer needed
             localStorage.removeItem('savedChatID');
             localStorage.removeItem('savedCustomUsername');
-            localStorage.removeItem('savedUsernameToSend');
-            // remove the boolean 
-            localStorage.removeItem('isExitToServerCalled')
+
+            // reattach to backend as it was wiped out
+            reloadChat();
+            
+            alert("Since you are the only user left in the chatroom, all chat history will be lost.")
         }
-        if (!usernameToSend) {
+
+        console.log(`THE VALUE OF USERNAMETOSEND IS: ${usernameToSend}`)
+
+        if (!usernameToSend && !localStorage.getItem('isExitToServerCalled')) {
             navigate('/');
         }
+
+        // remove the boolean 
+        localStorage.removeItem('isExitToServerCalled')
+        
     }, [usernameToSend, navigate]);
     
     useEffect(() => {
@@ -291,6 +295,89 @@ const ChatPage: React.FunctionComponent<ChatProps> = () => {
             }
         };
     }, []);
+
+    const reloadChat = async () => {
+        // /newuser request
+
+        console.log(`custom_username in reloadChat: ${customUsername}`)
+
+        const dataToSendNewUser = {
+            custom_username: customUsername
+        }
+
+        const newUserResponse = await fetch(`https://1bs9qf5xn1.execute-api.ap-southeast-1.amazonaws.com/newuser`, {
+            method: 'PUT',
+            headers: {
+            'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(
+            dataToSendNewUser)
+        });
+
+        const newUserID = await newUserResponse.json();
+        usernameToSend = newUserID.user_uuid
+
+        console.log(`usernameToSend in reloadChat: ${usernameToSend}`)
+
+        // /newroom request
+        const dataToSendNewRoom = {
+            chatroom_id: chatID,
+            user_uuid: newUserID.user_uuid
+        };
+
+        console.log(`chatroom_id in reloadChat: ${dataToSendNewRoom.chatroom_id}`)
+        console.log(`user_uuid in reloadChat: ${dataToSendNewRoom.user_uuid}`)
+
+        // /addtoroom request
+        const resultAddToRoomFirst = await fetch(`https://1bs9qf5xn1.execute-api.ap-southeast-1.amazonaws.com/addtoroom`,
+        {
+            method: "PUT",
+            headers: {
+            "Content-Type": "application/json",
+            },
+            body: JSON.stringify(
+            dataToSendNewRoom)
+        });
+        
+        const resultData = await resultAddToRoomFirst.json()
+
+        // chatroom does not exist as that was the only user left in room
+        if (resultData.message == "Internal Server Error")
+        {
+            const response = await fetch(`https://1bs9qf5xn1.execute-api.ap-southeast-1.amazonaws.com/newroom`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            });
+            
+            // update chatID
+            const data = await response.json();
+            chatID = data.chatroom_id
+            console.log(`new ChatID in reloadChat: ${chatID}`)
+            console.log(`new usernameToSend in reloadChat: ${usernameToSend}`)
+            // update chatID data to be sent to /addtoroom
+            const dataToSendNewRoom = {
+                chatroom_id: chatID,
+                user_uuid: usernameToSend
+            };
+
+            // add user to room
+            await fetch(`https://1bs9qf5xn1.execute-api.ap-southeast-1.amazonaws.com/addtoroom`,
+            {
+                method: "PUT",
+                headers: {
+                "Content-Type": "application/json",
+                },
+                body: JSON.stringify(
+                dataToSendNewRoom)
+            });
+        }
+        
+        dispatch(setUsername(customUsername));
+        dispatch({ type: GET_USER_ID, payload: newUserID.user_uuid });
+        dispatch({ type: SET_CHATROOM_ID, payload: chatID });
+    }
 
     const send = async (event: React.FormEvent) => {
         event.preventDefault();

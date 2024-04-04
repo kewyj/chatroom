@@ -146,9 +146,6 @@ const RoomListPage: React.FunctionComponent<ChatProps> = () => {
       
       const roomsData = await roomsResponse.json();
 
-      console.log(roomsData)
-      
-
       // UPDATE AND RENDER THE AVAILABLE CHATROOMS + USERS
       if (Array.isArray(roomsData)) {
         const constructChatrooms = roomsData.map(room => ({
