@@ -6,15 +6,14 @@ import (
 
 // chatroom
 type ChatRoom struct {
-	ID       string            `json:"chatroom_id"`
-	Users    map[string]string `json:"users"`
-	Messages []Message         `json:"messages"`
+	ID        string    `json:"chatroom_id"`
+	UserCount int       `json:"user_count"`
+	Messages  []Message `json:"messages"`
 }
 
 func NewChatRoom() ChatRoom {
 	return ChatRoom{
 		ID:       uuid.New().String(),
-		Users:    make(map[string]string),
 		Messages: []Message{},
 	}
 }

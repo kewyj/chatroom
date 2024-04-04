@@ -38,7 +38,7 @@ func (cs *ChatService) GetRooms() ([]model.GetRoomsResponse, error) {
 	for _, room := range rooms {
 		response := model.GetRoomsResponse{
 			RoomID:   room.ID,
-			NumUsers: len(room.Users),
+			NumUsers: room.UserCount,
 		}
 		responseSlice = append(responseSlice, response)
 	}
@@ -58,31 +58,41 @@ func (cs *ChatService) AddRoom() (string, error) {
 }
 
 func (cs *ChatService) AddUser(user model.NewUserRequest) (string, error) {
-	if !cs.storage.CheckIfRoomExists(user.RoomID) {
-		return "", errors.New("tried to add user to chatroom that does not exist")
-	}
+	user_uuid := uuid.New().String()
 
-	users, err := cs.storage.GetRoomUserUUIDs(user.RoomID)
+	err := cs.storage.NewUser(user_uuid, user.CustomUsername)
 	if err != nil {
 		return "", err
 	}
 
-	if len(users) >= MAX_USERS_IN_ROOM {
-		return "", errors.New("chatroom at max capacity")
-	}
-
-	// chatroom exists and can accomodate new user
-	user_uuid := uuid.New().String()
-	if err := cs.storage.AddUserToChatRoom(user.CustomUsername, user_uuid, user.RoomID); err != nil {
-		return "", err
-	}
-
-	// user successfully added
-	cs.sendUserJoinMessage(user)
-
-	//cs.printServerStatus()
-
 	return user_uuid, nil
+}
+
+func (cs *ChatService) AddUserToRoom(msg model.AddRoomRequest) error {
+	if !cs.storage.CheckIfRoomExists(msg.RoomID) {
+		return errors.New("tried to add user to chatroom that does not exist")
+	}
+
+	room, err := cs.storage.GetRoom(msg.RoomID)
+	if err != nil {
+		return err
+	}
+
+	if room.UserCount >= MAX_USERS_IN_ROOM {
+		return errors.New("chatroom at max capacity")
+	}
+
+	username, err := cs.storage.GetUsername(msg.Username)
+	if err != nil {
+		return err
+	}
+
+	cs.sendUserJoinMessage(model.AddRoomRequest{
+		RoomID:   msg.RoomID,
+		Username: username,
+	})
+
+	return cs.storage.AddUserToChatRoom(msg.RoomID)
 }
 
 func (cs *ChatService) SendMessage(msg model.MessageRequest) error {
@@ -99,13 +109,8 @@ func (cs *ChatService) SendMessage(msg model.MessageRequest) error {
 		cs.storage.RemoveEarliestMessage(msg.RoomID)
 	}
 
-	username, err := cs.storage.GetUsername(msg.RoomID, msg.Username)
-	if err != nil {
-		return err
-	}
-
 	cs.storage.AddMessageToChatRoom(msg.RoomID, model.Message{
-		Username: username,
+		Username: msg.Username,
 		Content:  msg.Content,
 	})
 
@@ -123,36 +128,43 @@ func (cs *ChatService) Poll(req model.PollRequest) ([]model.Message, error) {
 	return messages, nil
 }
 
-func (cs *ChatService) RemoveUser(req model.ExitRequest) error {
+func (cs *ChatService) RemoveUserFromRoom(req model.ExitRoomRequest) error {
 	if !cs.storage.CheckIfRoomExists(req.RoomID) {
 		return errors.New("tried to send message to chatroom that does not exist")
 	}
 
-	user, err := cs.storage.GetUsername(req.RoomID, req.Username)
+	username, err := cs.storage.GetUsername(req.Username)
 	if err != nil {
 		return err
 	}
 
-	cs.storage.RemoveUserFromChatRoom(req.Username, req.RoomID)
-
-	users, err := cs.storage.GetRoomUsernames(req.RoomID)
+	err = cs.storage.RemoveUserFromChatRoom(req.RoomID)
 	if err != nil {
 		return err
 	}
 
-	if len(users) == 0 {
-		// room empty, delete
-		cs.storage.RemoveRoom(req.RoomID)
+	room, err := cs.storage.GetRoom(req.RoomID)
+	if err != nil {
+		return err
+	}
+
+	if room.UserCount == 0 {
+		err = cs.storage.RemoveRoom(req.RoomID)
+		if err != nil {
+			return err
+		}
 	} else {
-		cs.sendUserExitMessage(model.ExitRequest{
+		cs.sendUserExitMessage(model.ExitRoomRequest{
 			RoomID:   req.RoomID,
-			Username: user,
+			Username: username,
 		})
 	}
 
-	//cs.printServerStatus()
-
 	return nil
+}
+
+func (cs *ChatService) RemoveUser(req model.ExitRequest) error {
+	return cs.storage.RemoveUser(req.Username)
 }
 
 func (cs *ChatService) ClearAll(password string) error {
@@ -162,17 +174,36 @@ func (cs *ChatService) ClearAll(password string) error {
 	return cs.storage.ClearAll()
 }
 
-func (cs *ChatService) sendUserJoinMessage(user model.NewUserRequest) {
+func (cs *ChatService) Quit(uuid string, chatroom_id string) error {
+	err := cs.RemoveUserFromRoom(model.ExitRoomRequest{
+		RoomID:   chatroom_id,
+		Username: uuid,
+	})
+	if err != nil {
+		return err
+	}
+
+	err = cs.RemoveUser(model.ExitRequest{
+		Username: uuid,
+	})
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (cs *ChatService) sendUserJoinMessage(user model.AddRoomRequest) {
 	cs.storage.AddMessageToChatRoom(user.RoomID, model.Message{
 		Username: ".:system:.",
-		Content:  user.CustomUsername + " has joined the chat.",
+		Content:  user.Username + " has joined the chat.",
 	})
 }
 
-func (cs *ChatService) sendUserExitMessage(user model.ExitRequest) {
-	cs.storage.AddMessageToChatRoom(user.RoomID, model.Message{
+func (cs *ChatService) sendUserExitMessage(req model.ExitRoomRequest) {
+	cs.storage.AddMessageToChatRoom(req.RoomID, model.Message{
 		Username: ".:system:.",
-		Content:  user.Username + " has left the chat.",
+		Content:  req.Username + " has left the chat.",
 	})
 }
 
@@ -181,11 +212,6 @@ func (cs *ChatService) printServerStatus() {
 
 	for _, val := range rooms {
 		fmt.Println("ROOM: " + val.ID)
-
-		fmt.Println("\tUsers:")
-		for _, user := range val.Users {
-			fmt.Println("\t\t" + user)
-		}
 
 		fmt.Println("\tMessages:")
 		for _, msg := range val.Messages {

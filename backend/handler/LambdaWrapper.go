@@ -55,6 +55,11 @@ func (l *LambdaHandler) LambdaHandler(ctx context.Context, request events.APIGat
 			return l.NewUser(request)
 		}
 
+	case "/addtoroom":
+		if request.RequestContext.HTTP.Method == "PUT" {
+			return l.AddToRoom(request)
+		}
+
 	case "/chat":
 		if request.RequestContext.HTTP.Method == "POST" {
 			return l.Chat(request)
@@ -63,6 +68,10 @@ func (l *LambdaHandler) LambdaHandler(ctx context.Context, request events.APIGat
 	case "/poll":
 		if request.RequestContext.HTTP.Method == "PATCH" {
 			return l.Poll(request)
+		}
+	case "/exitroom":
+		if request.RequestContext.HTTP.Method == "DELETE" {
+			return l.ExitRoom(request)
 		}
 
 	case "/exit":
@@ -73,6 +82,11 @@ func (l *LambdaHandler) LambdaHandler(ctx context.Context, request events.APIGat
 	case "/clear":
 		if request.RequestContext.HTTP.Method == "DELETE" {
 			return l.Clear(request)
+		}
+
+	case "/quit":
+		if request.RequestContext.HTTP.Method == "DELETE" {
+			return l.Quit(request)
 		}
 
 	default:
@@ -221,6 +235,40 @@ func (l *LambdaHandler) NewUser(request events.APIGatewayV2HTTPRequest) (events.
 	return response, nil
 }
 
+func (l *LambdaHandler) AddToRoom(request events.APIGatewayV2HTTPRequest) (events.APIGatewayV2HTTPResponse, error) {
+	log.Println("Handling Add To Room Request")
+
+	msg, err := l.UnmarshalAddRoomRequest(request.Body)
+	if err != nil {
+		return events.APIGatewayV2HTTPResponse{
+			StatusCode: 500,
+			Headers: map[string]string{
+				"Access-Control-Allow-Origin": "*",
+			},
+		}, err
+	}
+
+	err = l.controller.AddUserToRoom(msg)
+	if err != nil {
+		return events.APIGatewayV2HTTPResponse{
+			StatusCode: 500,
+			Headers: map[string]string{
+				"Access-Control-Allow-Origin": "*",
+			},
+		}, err
+	}
+
+	return events.APIGatewayV2HTTPResponse{
+		StatusCode: 200,
+		Headers: map[string]string{
+			"Content-Type":                 "application/json",
+			"Access-Control-Allow-Origin":  "*",
+			"Access-Control-Allow-Methods": "*",
+			"Access-Control-Allow-Headers": "*",
+		},
+	}, nil
+}
+
 func (l *LambdaHandler) Chat(request events.APIGatewayV2HTTPRequest) (events.APIGatewayV2HTTPResponse, error) {
 	log.Println("Handling Chat Request")
 
@@ -302,6 +350,40 @@ func (l *LambdaHandler) Poll(request events.APIGatewayV2HTTPRequest) (events.API
 	return response, nil
 }
 
+func (l *LambdaHandler) ExitRoom(request events.APIGatewayV2HTTPRequest) (events.APIGatewayV2HTTPResponse, error) {
+	log.Println("Handling Exit Room Request")
+
+	msg, err := l.UnmarshalExitRoomRequest(request.Body)
+	if err != nil {
+		return events.APIGatewayV2HTTPResponse{
+			StatusCode: 500,
+			Headers: map[string]string{
+				"Access-Control-Allow-Origin": "*",
+			},
+		}, err
+	}
+
+	err = l.controller.RemoveUserFromRoom(msg)
+	if err != nil {
+		return events.APIGatewayV2HTTPResponse{
+			StatusCode: 500,
+			Headers: map[string]string{
+				"Access-Control-Allow-Origin": "*",
+			},
+		}, err
+	}
+
+	return events.APIGatewayV2HTTPResponse{
+		StatusCode: 200,
+		Headers: map[string]string{
+			"Content-Type":                 "application/json",
+			"Access-Control-Allow-Origin":  "*",
+			"Access-Control-Allow-Methods": "*",
+			"Access-Control-Allow-Headers": "*",
+		},
+	}, nil
+}
+
 func (l *LambdaHandler) Exit(request events.APIGatewayV2HTTPRequest) (events.APIGatewayV2HTTPResponse, error) {
 	log.Println("Handling Exit Request")
 
@@ -370,6 +452,38 @@ func (l *LambdaHandler) Clear(request events.APIGatewayV2HTTPRequest) (events.AP
 	}, nil
 }
 
+func (l *LambdaHandler) Quit(request events.APIGatewayV2HTTPRequest) (events.APIGatewayV2HTTPResponse, error) {
+	msg, err := l.UnmarshalQuitRequest(request.Body)
+	if err != nil {
+		return events.APIGatewayV2HTTPResponse{
+			StatusCode: 500,
+			Headers: map[string]string{
+				"Access-Control-Allow-Origin": "*",
+			},
+		}, err
+	}
+
+	err = l.controller.Quit(msg.Username, msg.RoomID)
+	if err != nil {
+		return events.APIGatewayV2HTTPResponse{
+			StatusCode: 500,
+			Headers: map[string]string{
+				"Access-Control-Allow-Origin": "*",
+			},
+		}, err
+	}
+
+	return events.APIGatewayV2HTTPResponse{
+		StatusCode: 200,
+		Headers: map[string]string{
+			"Content-Type":                 "application/json",
+			"Access-Control-Allow-Origin":  "*",
+			"Access-Control-Allow-Methods": "*",
+			"Access-Control-Allow-Headers": "*",
+		},
+	}, nil
+}
+
 func (l *LambdaHandler) UnmarshalNewUser(body string) (model.NewUserRequest, error) {
 	var user model.NewUserRequest
 	err := json.Unmarshal([]byte(body), &user)
@@ -378,6 +492,16 @@ func (l *LambdaHandler) UnmarshalNewUser(body string) (model.NewUserRequest, err
 	}
 
 	return user, nil
+}
+
+func (l *LambdaHandler) UnmarshalAddRoomRequest(body string) (model.AddRoomRequest, error) {
+	var msg model.AddRoomRequest
+	err := json.Unmarshal([]byte(body), &msg)
+	if err != nil {
+		return model.AddRoomRequest{}, err
+	}
+
+	return msg, nil
 }
 
 func (l *LambdaHandler) UnmarshalMessageRequest(body string) (model.MessageRequest, error) {
@@ -400,6 +524,16 @@ func (l *LambdaHandler) UnmarshalPollRequest(body string) (model.PollRequest, er
 	return msg, nil
 }
 
+func (l *LambdaHandler) UnmarshalExitRoomRequest(body string) (model.ExitRoomRequest, error) {
+	var msg model.ExitRoomRequest
+	err := json.Unmarshal([]byte(body), &msg)
+	if err != nil {
+		return model.ExitRoomRequest{}, err
+	}
+
+	return msg, nil
+}
+
 func (l *LambdaHandler) UnmarshalExitRequest(body string) (model.ExitRequest, error) {
 	var msg model.ExitRequest
 	err := json.Unmarshal([]byte(body), &msg)
@@ -415,6 +549,16 @@ func (l *LambdaHandler) UnmarshalClearRequest(body string) (model.ClearRequest, 
 	err := json.Unmarshal([]byte(body), &msg)
 	if err != nil {
 		return model.ClearRequest{}, err
+	}
+
+	return msg, nil
+}
+
+func (l *LambdaHandler) UnmarshalQuitRequest(body string) (model.QuitRequest, error) {
+	var msg model.QuitRequest
+	err := json.Unmarshal([]byte(body), &msg)
+	if err != nil {
+		return model.QuitRequest{}, err
 	}
 
 	return msg, nil
