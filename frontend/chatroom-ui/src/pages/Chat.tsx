@@ -98,7 +98,7 @@ const ChatPage: React.FunctionComponent<ChatProps> = () => {
             if (allowNavigation && usernameToSend && update.action === 'POP') {
                 if (window.confirm("Leaving so soon? Chat data will be lost.")) {
                     SetIsOnce(true);
-                    exitToServer();
+                    exitRoom();
                 }
                 else {
                     SetIsOnce(false);
@@ -257,13 +257,13 @@ const ChatPage: React.FunctionComponent<ChatProps> = () => {
 
         const dataToSend = {
             chatroom_id: chatID,
-            username: usernameToSend,
+            username: customUsername,
             message: message
         };
 
-         console.log(`/chat sending chatroom: ${dataToSend.chatroom_id}`);
-         console.log(`/chat sending username: ${dataToSend.username}`);
-         console.log(`/chat sending message: ${dataToSend.message}`);
+        console.log(`/chat sending chatroom: ${dataToSend.chatroom_id}`);
+        console.log(`/chat sending username: ${dataToSend.username}`);
+        console.log(`/chat sending message: ${dataToSend.message}`);
 
         try {
             if (!isWhitespace(dataToSend.message)) {
@@ -332,18 +332,18 @@ const ChatPage: React.FunctionComponent<ChatProps> = () => {
         setVisibility(true);
     }
 
-    const exitToServer = async () => {
-
+    const exitRoom = async () => {
         const dataToSend = {
             chatroom_id: chatID,
             user_uuid: usernameToSend
         };
 
-        console.log(`chatID sent: ${dataToSend.chatroom_id}`)
-        console.log(`username sent: ${dataToSend.user_uuid}`)
+        console.log(`/exitroom sending user_uuid: ${dataToSend.chatroom_id}`);
+        console.log(`/exitroom sending user_uuid: ${dataToSend.user_uuid}`);
 
         try {
-            fetch(`https://1bs9qf5xn1.execute-api.ap-southeast-1.amazonaws.com/exit`, {
+
+            await fetch(`https://1bs9qf5xn1.execute-api.ap-southeast-1.amazonaws.com/exitroom`, {
             method: 'DELETE',
             headers: {
                 'Content-Type': 'application/json',
@@ -352,15 +352,28 @@ const ChatPage: React.FunctionComponent<ChatProps> = () => {
                 dataToSend)
             });
 
-            console.log(dataToSend);
-                        
-            const exitConfirmation = 'Leaving so soon?';
+        } catch (error) {
+            console.error('Error sending message:', error);
+            throw error;
+        }
+    }
 
-            //dispatch(setChatroomID(''));
-            //dispatch({ type: 'RESET_USER' });
+    const dataToSendExitRoom = {
+        chatroom_id: chatID,
+        user_uuid: usernameToSend
+    };
 
-            //window.location.reload();
-            return exitConfirmation;
+    const exitToServer = async () => {
+
+        try {
+            await fetch(`https://1bs9qf5xn1.execute-api.ap-southeast-1.amazonaws.com/quit`, {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(
+                dataToSendExitRoom)
+            });
         }
         catch (error) {
             console.error('Error sending message:', error);
@@ -384,12 +397,10 @@ const ChatPage: React.FunctionComponent<ChatProps> = () => {
                     dataToSend)
                 });
                 
-            const chatData = await chatResponse.json();
-            localStorage.setItem('userDetails', JSON.stringify(chatData))
-            const users = localStorage.getItem('userDetails')
-            const username = users ? JSON.parse(users) : '';
-                
-                //console.log(data)
+                const chatData = await chatResponse.json();
+                localStorage.setItem('userDetails', JSON.stringify(chatData))
+                const users = localStorage.getItem('userDetails')
+                const username = users ? JSON.parse(users) : '';
                 
                 // CHEck if server response was null before calling state change
                 if (!chatData)
@@ -417,7 +428,7 @@ const ChatPage: React.FunctionComponent<ChatProps> = () => {
 
     // to change when server updates
     const handleBackToRoomList = () => {
-        exitToServer();
+        exitRoom();
         navigate('/rooms')
     }
 

@@ -14,7 +14,6 @@ import '../styles/components/createRoomButton.css'
 
 // Define the type for your store state
 interface AppState {
-    userID: string;
   username: string;
 }
 
@@ -27,7 +26,6 @@ const CreateRoomButton = ({ children }: Props) => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const customUsername = useSelector((state: AppState) => state.username);
-  const userID = useSelector((state: AppState) => state.userID);
   
   const handleUsernameChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setUsernameState(event.target.value);
@@ -35,13 +33,7 @@ const CreateRoomButton = ({ children }: Props) => {
 
   const handleClick = async () => {
     try {
-      // to get userID
-      // const serverHost = config.server.host;
-      // const serverPort = config.server.port;
-      // const nrPath = "/newroom";
-      // const nrUrl = `http://${serverHost}:${serverPort}${nrPath}`;
 
-      // PUT /newroom to create room (implement when database is up)
       const response = await fetch(`https://1bs9qf5xn1.execute-api.ap-southeast-1.amazonaws.com/newroom`, {
           method: 'PUT',
           headers: {
@@ -52,9 +44,8 @@ const CreateRoomButton = ({ children }: Props) => {
       const data = await response.json(); 
       console.log(data.chatroom_id)
 
-      const dataToSend = {
-        custom_username: customUsername,
-        chatroom_id: data.chatroom_id
+      const dataToSendNewUser = {
+        custom_username: customUsername
       }
 
       const newUserResponse = await fetch(`https://1bs9qf5xn1.execute-api.ap-southeast-1.amazonaws.com/newuser`, {
@@ -63,11 +54,29 @@ const CreateRoomButton = ({ children }: Props) => {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(
-          dataToSend)
+          dataToSendNewUser)
       });
-
+      
       const newUserID = await newUserResponse.json();
       console.log(`${newUserID.user_uuid} is the user's uuid`);
+
+      const dataToSendAddToRoom = {
+        chatroom_id: data.chatroom_id,
+        user_uuid: newUserID.user_uuid
+      };
+
+      console.log(`Sending ${dataToSendAddToRoom.chatroom_id} to addtoroom`);
+      console.log(`Sending ${dataToSendAddToRoom.user_uuid} to addtoroom`);
+
+      await fetch(`https://1bs9qf5xn1.execute-api.ap-southeast-1.amazonaws.com/addtoroom`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify
+            (dataToSendAddToRoom)
+        });
 
       // Dispatch an action to update the store with new userID
       dispatch({ type: GET_USER_ID, payload: newUserID.user_uuid });

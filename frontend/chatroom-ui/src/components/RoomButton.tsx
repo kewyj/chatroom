@@ -21,48 +21,72 @@ const RoomButton: React.FC<Props> = ({ title, users }) => {
   const [username, setUsernameState] = useState("");
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  const customUsername = useSelector((state: AppState) => state.username);
   const userID = useSelector((state: AppState) => state.userID);
+  const customUsername = useSelector((state: AppState) => state.username);
 
   const handleUsernameChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setUsernameState(event.target.value);
   };
 
   const handleClick = async () => {
-    try {
-      const dataToSend = {
-        custom_username: customUsername,
-        chatroom_id: title,
-      };
+    try
+    {
+      const dataToSendNewUser = {
+        custom_username: customUsername
+      }
 
-      console.log(`custom username sent from room button: ${customUsername}`);
-      console.log(`chatroom_id sent from room button: ${title}`);
+      if (userID == null)
+      {
+        const newUserResponse = await fetch(`https://1bs9qf5xn1.execute-api.ap-southeast-1.amazonaws.com/newuser`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(
+          dataToSendNewUser)
+        });
 
-      console.log(`Before get user_uuid: ${userID}`);
-
-      const newUserResponse = await fetch(
-        `https://1bs9qf5xn1.execute-api.ap-southeast-1.amazonaws.com/newuser`,
+        const newUserID = await newUserResponse.json();
+        console.log(`${newUserID.user_uuid} is the user's uuid`);
+      
+        const dataToSend = {
+          chatroom_id: title,
+          user_uuid: newUserID.user_uuid
+        };
+        
+        await fetch(`https://1bs9qf5xn1.execute-api.ap-southeast-1.amazonaws.com/addtoroom`,
         {
           method: "PUT",
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify(dataToSend),
-        }
-      );
+          body: JSON.stringify(
+            dataToSend)
+        });
+        
+        dispatch({ type: GET_USER_ID, payload: newUserID.user_uuid });
+      }
+      else
+      {
+        const dataToSend = {
+          chatroom_id: title,
+          user_uuid: userID
+        };
 
-      const newUserID = await newUserResponse.json();
-      console.log(
-        `${customUsername} has made chatroom selection from /rooms`
-      );
-      console.log(newUserID.user_uuid);
-
-      // Dispatch an action to update the store with new userID
-      dispatch({ type: GET_USER_ID, payload: newUserID.user_uuid });
+        await fetch(`https://1bs9qf5xn1.execute-api.ap-southeast-1.amazonaws.com/addtoroom`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(
+            dataToSend)
+        });
+      }
 
       dispatch({ type: SET_CHATROOM_ID, payload: title });
-
       navigate("/chat");
+
     } catch (error) {
       console.error("Error fetching data:", error);
     }
