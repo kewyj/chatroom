@@ -46,10 +46,10 @@ const ChatPage: React.FunctionComponent<ChatProps> = () => {
     const dispatch = useDispatch();
     const userID = useSelector((state: AppState) => state.userID);
     const message = useSelector((state: AppState) => state.message);
-    const chatID = useSelector((state: AppState) => state.chatID);
-    const customUsername = useSelector((state: AppState) => state.username);
+    let chatID = useSelector((state: AppState) => state.chatID);
+    let customUsername = useSelector((state: AppState) => state.username);
     const [receivedMessages, setReceivedMessages] = useState<Message[]>([]);
-    const usernameToSend = userID;
+    let usernameToSend = userID;
     const [messageLimit, _setMessageLimit] = useState<number>(32); // added underscore to remove warning
     const [isVisible, setVisibility] = useState<boolean>(false);
     const [isGlittering, setIsGlittering] = useState<boolean>(true);
@@ -79,6 +79,16 @@ const ChatPage: React.FunctionComponent<ChatProps> = () => {
 
     useEffect(() => {
         const handleBeforeUnload = (event: BeforeUnloadEvent) => {
+            // indicate that exit to Server is called in local storage
+            localStorage.setItem('isExitToServerCalled', JSON.stringify(true))
+            const test = localStorage.getItem('isExitToServerCalled')
+            console.log(`testing condition item: ${test}`);
+
+            // save data that need to be retrieve in the event of refresh and not close
+            localStorage.setItem('savedChatID', JSON.stringify(chatID))
+            localStorage.setItem('savedCustomUsername', JSON.stringify(customUsername))
+            localStorage.setItem('savedUsernameToSend', JSON.stringify(usernameToSend))
+            
             exitToServer();
         };
 
@@ -208,6 +218,40 @@ const ChatPage: React.FunctionComponent<ChatProps> = () => {
 
     // placing usernameToSend and navigate under the [] meant that this useEffect() function will run whenever either usernameToSend or navigate changes
     useEffect(() => {
+        console.log("CAMEEEEEEEEEEEEEEEEEEEEEEEEEEEE AS INTENDEDDDDDDDDDDDDDDDDD")
+        const condition = localStorage.getItem('isExitToServerCalled')
+        console.log(`condition is ${condition}`);
+
+        if (localStorage.getItem('isExitToServerCalled')) {
+
+            const storedChatID = localStorage.getItem('savedChatID');
+            const storedCustomUsername = localStorage.getItem('savedCustomUsername');
+            const storedUserID = localStorage.getItem('savedUsernameToSend');
+
+            if (storedChatID !== null)
+            {
+                chatID = storedChatID;
+            }
+            if (storedCustomUsername !== null)
+            {
+                customUsername = storedCustomUsername;
+            }
+            if (storedUserID !== null)
+            {
+                usernameToSend = storedUserID;    
+            }
+
+            console.log(`AT ISEXITTOSERVER CALLED chatID: ${chatID}`);
+            console.log(`AT ISEXITTOSERVER CALLED customUsername: ${customUsername}`);
+            console.log(`AT ISEXITTOSERVER CALLED usernameToSend: ${usernameToSend}`);
+
+            // remove all 3 stored info as no longer needed
+            localStorage.removeItem('savedChatID');
+            localStorage.removeItem('savedCustomUsername');
+            localStorage.removeItem('savedUsernameToSend');
+            // remove the boolean 
+            localStorage.removeItem('isExitToServerCalled')
+        }
         if (!usernameToSend) {
             navigate('/');
         }
@@ -364,7 +408,6 @@ const ChatPage: React.FunctionComponent<ChatProps> = () => {
     };
 
     const exitToServer = async () => {
-
         try {
             await fetch(`https://1bs9qf5xn1.execute-api.ap-southeast-1.amazonaws.com/quit`, {
             method: 'DELETE',

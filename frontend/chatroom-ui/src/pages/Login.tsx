@@ -12,6 +12,8 @@ const LoginPage: React.FunctionComponent<LoginProps> = () => {
 
     //<img src={chatroomLogo} alt = 'Logo' className = 'ChatroomGif'/>
 
+    localStorage.clear();
+
     return (
         <main className="login_background">
             <section className='login_page'>
