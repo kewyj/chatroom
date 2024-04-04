@@ -31,61 +31,69 @@ const RoomButton: React.FC<Props> = ({ title, users }) => {
   const handleClick = async () => {
     try
     {
-      const dataToSendNewUser = {
-        custom_username: customUsername
-      }
-
-      if (userID == null)
-      {
-        const newUserResponse = await fetch(`https://1bs9qf5xn1.execute-api.ap-southeast-1.amazonaws.com/newuser`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(
-          dataToSendNewUser)
-        });
-
-        const newUserID = await newUserResponse.json();
-        console.log(`${newUserID.user_uuid} is the user's uuid`);
+      // check if the chatroom contains 10 ppl already
+      console.log(`no of users are: ${users}`)
       
-        const dataToSend = {
-          chatroom_id: title,
-          user_uuid: newUserID.user_uuid
-        };
+      if (users < 10) {
+        const dataToSendNewUser = {
+          custom_username: customUsername
+        }
+
+        if (userID == null) {
+          const newUserResponse = await fetch(`https://1bs9qf5xn1.execute-api.ap-southeast-1.amazonaws.com/newuser`, {
+            method: 'PUT',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(
+              dataToSendNewUser)
+          });
+
+          const newUserID = await newUserResponse.json();
+          console.log(`${newUserID.user_uuid} is the user's uuid`);
         
-        await fetch(`https://1bs9qf5xn1.execute-api.ap-southeast-1.amazonaws.com/addtoroom`,
-        {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(
-            dataToSend)
-        });
-        
-        dispatch({ type: GET_USER_ID, payload: newUserID.user_uuid });
+          const dataToSend = {
+            chatroom_id: title,
+            user_uuid: newUserID.user_uuid
+          };
+          
+          await fetch(`https://1bs9qf5xn1.execute-api.ap-southeast-1.amazonaws.com/addtoroom`,
+            {
+              method: "PUT",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify(
+                dataToSend)
+            });
+          
+          dispatch({ type: GET_USER_ID, payload: newUserID.user_uuid });
+        }
+        else {
+          const dataToSend = {
+            chatroom_id: title,
+            user_uuid: userID
+          };
+
+          await fetch(`https://1bs9qf5xn1.execute-api.ap-southeast-1.amazonaws.com/addtoroom`,
+            {
+              method: "PUT",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify(
+                dataToSend)
+            });
+        }
+
+        dispatch({ type: SET_CHATROOM_ID, payload: title });
+        navigate("/chat");
       }
       else
       {
-        const dataToSend = {
-          chatroom_id: title,
-          user_uuid: userID
-        };
-
-        await fetch(`https://1bs9qf5xn1.execute-api.ap-southeast-1.amazonaws.com/addtoroom`,
-        {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(
-            dataToSend)
-        });
+        // trigger a custom pop up that inform user chatroom is full
+        alert("Chatroom is full. Either wait or create a new chatroom.");
       }
-
-      dispatch({ type: SET_CHATROOM_ID, payload: title });
-      navigate("/chat");
 
     } catch (error) {
       console.error("Error fetching data:", error);

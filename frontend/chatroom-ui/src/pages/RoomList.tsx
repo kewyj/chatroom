@@ -120,7 +120,7 @@ const RoomListPage: React.FunctionComponent<ChatProps> = () => {
     // Fetch messages from the server and update receivedMessages state
     fetchChatroomsFromServer();
 
-    // Update chatrooms every 5 seconds
+    // Update chatrooms every 1 second (dont tell yj)
     const intervalId = setInterval(fetchChatroomsFromServer, 1000);
 
     // Clear interval
