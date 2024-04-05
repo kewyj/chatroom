@@ -8,4 +8,8 @@ require (
 	github.com/google/uuid v1.6.0
 )
 
-require github.com/jmespath/go-jmespath v0.4.0 // indirect
+require (
+	github.com/jmespath/go-jmespath v0.4.0 // indirect
+	github.com/nwtgck/go-fakelish v0.1.3 // indirect
+	github.com/ugorji/go/codec v1.1.7 // indirect
+)

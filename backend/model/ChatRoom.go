@@ -1,7 +1,9 @@
 package model
 
 import (
-	"github.com/google/uuid"
+	"strings"
+
+	"github.com/nwtgck/go-fakelish"
 )
 
 // chatroom
@@ -12,8 +14,10 @@ type ChatRoom struct {
 }
 
 func NewChatRoom() ChatRoom {
+	name := fakelish.GenerateFakeWord(6, 9)
+	name = strings.Title(name)
 	return ChatRoom{
-		ID:       uuid.New().String(),
+		ID:       name,
 		Messages: []Message{},
 	}
 }
