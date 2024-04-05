@@ -3,10 +3,12 @@ package controller
 import (
 	"errors"
 	"fmt"
+	"strings"
 
 	"github.com/google/uuid"
 	"github.com/kewyj/chatroom/model"
 	"github.com/kewyj/chatroom/storage"
+	"github.com/nwtgck/go-fakelish"
 )
 
 const MAX_USERS_IN_ROOM = 10
@@ -47,14 +49,20 @@ func (cs *ChatService) GetRooms() ([]model.GetRoomsResponse, error) {
 }
 
 func (cs *ChatService) AddRoom() (string, error) {
-	newroom := uuid.New().String()
+	name := fakelish.GenerateFakeWord(6, 9)
+	name = strings.Title(name)
 
-	err := cs.storage.NewChatRoom(newroom)
+	for cs.storage.CheckIfRoomExists(name) {
+		name = fakelish.GenerateFakeWord(6, 9)
+		name = strings.Title(name)
+	}
+
+	err := cs.storage.NewChatRoom(name)
 	if err != nil {
 		return "", err
 	}
 
-	return newroom, nil
+	return name, nil
 }
 
 func (cs *ChatService) AddUser(user model.NewUserRequest) (string, error) {
