@@ -9,6 +9,7 @@ import CreateRoomButton from "../components/CreateRoomButton";
 
 import "@fortawesome/fontawesome-free/css/all.css";
 import "../styles/roomlist.css";
+import { SET_USERNAME } from "../action_types";
 
 export interface ChatProps {}
 
@@ -57,13 +58,37 @@ const RoomListPage: React.FunctionComponent<ChatProps> = () => {
   const [receivedChatrooms, setReceivedChatrooms] = useState<Chatrooms[]>([]);
   const [zoomIn, setZoomIn] = useState(false);
 
-  const customUsername = useSelector((state: AppState) => state.username);
+  let customUsername = useSelector((state: AppState) => state.username);
 
   // when user comes here check if have userid, dont have, navigate to first page
   const navigate = useNavigate();
 
   const host = "localhost";
   const port = 3333;
+
+  useEffect(() => {
+    const handleBeforeUnload = (event: BeforeUnloadEvent) => {
+      localStorage.setItem('roomsCustomUsername', JSON.stringify(customUsername));
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+
+    return () => {
+        window.removeEventListener('beforeunload', handleBeforeUnload);
+    };
+  }, [customUsername]);
+
+  useEffect(() => {
+    if (!customUsername && !localStorage.getItem('roomsCustomUsername'))
+    {
+      navigate('/')
+    }
+    const storedUsername = JSON.parse(localStorage.getItem('roomsCustomUsername') || '""');
+    if (storedUsername && storedUsername !== customUsername) {
+      dispatch({ type: SET_USERNAME, payload: storedUsername });
+      customUsername = storedUsername;
+    }
+  }, []);
 
   const updateClock = (data: HomeClock) => {
     setClock((prev) => {

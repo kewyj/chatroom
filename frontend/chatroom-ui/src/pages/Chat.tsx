@@ -242,8 +242,6 @@ const ChatPage: React.FunctionComponent<ChatProps> = () => {
 
             // reattach to backend as it was wiped out
             reloadChat();
-            
-            alert("Since you are the only user left in the chatroom, all chat history will be lost.")
         }
 
         console.log(`THE VALUE OF USERNAMETOSEND IS: ${usernameToSend}`)
@@ -341,6 +339,8 @@ const ChatPage: React.FunctionComponent<ChatProps> = () => {
         
         const resultData = await resultAddToRoomFirst.json()
 
+        console.log(`RESULT DATA IS: ${resultData.message}`);
+
         // chatroom does not exist as that was the only user left in room
         if (resultData.message == "Internal Server Error")
         {
@@ -372,6 +372,8 @@ const ChatPage: React.FunctionComponent<ChatProps> = () => {
                 body: JSON.stringify(
                 dataToSendNewRoom)
             });
+            
+            alert("Since you are the only user left in the chatroom, all chat history will be lost.")
         }
         
         dispatch(setUsername(customUsername));
