@@ -221,8 +221,8 @@ const ChatPage: React.FunctionComponent<ChatProps> = () => {
     useEffect(() => {
         if (localStorage.getItem('isExitToServerCalled')) {
 
-            const storedChatID = localStorage.getItem('savedChatID');
-            const storedCustomUsername = localStorage.getItem('savedCustomUsername');
+            const storedChatID = JSON.parse(localStorage.getItem('savedChatID')|| '""');
+            const storedCustomUsername = JSON.parse(localStorage.getItem('savedCustomUsername')|| '""');
 
             if (storedChatID !== null)
             {
@@ -337,12 +337,12 @@ const ChatPage: React.FunctionComponent<ChatProps> = () => {
             dataToSendNewRoom)
         });
         
-        const resultData = await resultAddToRoomFirst.json()
+        //const resultData = await resultAddToRoomFirst.json()
 
-        console.log(`RESULT DATA IS: ${resultData.message}`);
+        //console.log(`RESULT DATA IS: ${resultData.message}`);
 
         // chatroom does not exist as that was the only user left in room
-        if (resultData.message == "Internal Server Error")
+        if (!resultAddToRoomFirst.ok)
         {
             const response = await fetch(`https://1bs9qf5xn1.execute-api.ap-southeast-1.amazonaws.com/newroom`, {
                 method: 'PUT',
