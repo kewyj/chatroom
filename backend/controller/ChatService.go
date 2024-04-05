@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"strings"
 
+	"time"
+
 	"github.com/google/uuid"
 	"github.com/kewyj/chatroom/model"
 	"github.com/kewyj/chatroom/storage"
@@ -73,6 +75,14 @@ func (cs *ChatService) AddUser(user model.NewUserRequest) (string, error) {
 		return "", err
 	}
 
+	t := time.Now()
+	t_string := t.Format("20060102150405")
+
+	err = cs.storage.UpdateUserActivity(user_uuid, t_string)
+	if err != nil {
+		return "", err
+	}
+
 	return user_uuid, nil
 }
 
@@ -100,7 +110,15 @@ func (cs *ChatService) AddUserToRoom(msg model.AddRoomRequest) error {
 		Username: username,
 	})
 
-	return cs.storage.AddUserToChatRoom(msg.RoomID)
+	err = cs.storage.AddUserToChatRoom(msg.RoomID)
+	if err != nil {
+		return err
+	}
+
+	t := time.Now()
+	t_string := t.Format("20060102150405")
+
+	return cs.storage.UpdateUserActivity(msg.Username, t_string)
 }
 
 func (cs *ChatService) SendMessage(msg model.MessageRequest) error {
@@ -117,17 +135,30 @@ func (cs *ChatService) SendMessage(msg model.MessageRequest) error {
 		cs.storage.RemoveEarliestMessage(msg.RoomID)
 	}
 
-	cs.storage.AddMessageToChatRoom(msg.RoomID, model.Message{
-		Username: msg.Username,
+	username, err := cs.storage.GetUsername(msg.Username)
+	if err != nil {
+		return err
+	}
+
+	err = cs.storage.AddMessageToChatRoom(msg.RoomID, model.Message{
+		Username: username,
 		Content:  msg.Content,
 	})
+	if err != nil {
+		return err
+	}
 
-	//cs.printServerStatus()
-
-	return nil
+	t := time.Now()
+	t_string := t.Format("20060102150405")
+	return cs.storage.UpdateUserActivity(msg.Username, t_string)
 }
 
 func (cs *ChatService) Poll(req model.PollRequest) ([]model.Message, error) {
+	_, err := cs.storage.GetUsername(req.Username)
+	if err != nil {
+		return []model.Message{}, err
+	}
+
 	messages, err := cs.storage.GetRoomMessages(req.RoomID)
 	if err != nil {
 		return []model.Message{}, err
@@ -168,7 +199,9 @@ func (cs *ChatService) RemoveUserFromRoom(req model.ExitRoomRequest) error {
 		})
 	}
 
-	return nil
+	t := time.Now()
+	t_string := t.Format("20060102150405")
+	return cs.storage.UpdateUserActivity(req.Username, t_string)
 }
 
 func (cs *ChatService) RemoveUser(req model.ExitRequest) error {
@@ -199,6 +232,14 @@ func (cs *ChatService) Quit(uuid string, chatroom_id string) error {
 	}
 
 	return nil
+}
+
+func (cs *ChatService) Cull() error {
+	currentTime := time.Now()
+	cullTime := currentTime.Add(-10 * time.Minute)
+	cullTimeString := cullTime.Format("20060102150405")
+
+	return cs.storage.CullIfLessThan(cullTimeString)
 }
 
 func (cs *ChatService) sendUserJoinMessage(user model.AddRoomRequest) {

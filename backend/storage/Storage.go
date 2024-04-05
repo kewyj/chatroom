@@ -24,5 +24,8 @@ type Storage interface {
 	RemoveUser(uuid string) error
 	RemoveRoom(chatroom_id string) error
 
+	UpdateUserActivity(uuid string, time string) error
+
+	CullIfLessThan(time string) error
 	ClearAll() error
 }

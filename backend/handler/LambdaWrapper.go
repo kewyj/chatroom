@@ -89,6 +89,11 @@ func (l *LambdaHandler) LambdaHandler(ctx context.Context, request events.APIGat
 			return l.Quit(request)
 		}
 
+	case "/cull":
+		if request.RequestContext.HTTP.Method == "DELETE" {
+			return l.Cull(request)
+		}
+
 	default:
 		return events.APIGatewayV2HTTPResponse{
 			StatusCode: 404,
@@ -464,6 +469,28 @@ func (l *LambdaHandler) Quit(request events.APIGatewayV2HTTPRequest) (events.API
 	}
 
 	err = l.controller.Quit(msg.Username, msg.RoomID)
+	if err != nil {
+		return events.APIGatewayV2HTTPResponse{
+			StatusCode: 500,
+			Headers: map[string]string{
+				"Access-Control-Allow-Origin": "*",
+			},
+		}, err
+	}
+
+	return events.APIGatewayV2HTTPResponse{
+		StatusCode: 200,
+		Headers: map[string]string{
+			"Content-Type":                 "application/json",
+			"Access-Control-Allow-Origin":  "*",
+			"Access-Control-Allow-Methods": "*",
+			"Access-Control-Allow-Headers": "*",
+		},
+	}, nil
+}
+
+func (l *LambdaHandler) Cull(request events.APIGatewayV2HTTPRequest) (events.APIGatewayV2HTTPResponse, error) {
+	err := l.controller.Cull()
 	if err != nil {
 		return events.APIGatewayV2HTTPResponse{
 			StatusCode: 500,

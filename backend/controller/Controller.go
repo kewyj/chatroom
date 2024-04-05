@@ -13,4 +13,5 @@ type Controller interface {
 	RemoveUser(model.ExitRequest) error
 	ClearAll(string) error
 	Quit(uuid string, chatroom_id string) error
+	Cull() error
 }
