@@ -90,7 +90,7 @@
     right: 0;
     top: 0;
     bottom: 0;
-    animation: fadeInAndZoom 3s forwards;
+    animation: fadeInAndZoom 1.5s forwards;
     /* Total animation time */
     z-index: -1;
 }
@@ -105,7 +105,7 @@
     right: 0;
     top: 0;
     bottom: 0;
-    animation: enter_room_list 6s forwards;
+    animation: enter_room_list 3s forwards;
     opacity: 0;
     z-index: -1;
 }

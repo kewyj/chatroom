@@ -18,7 +18,7 @@ const LoginPage: React.FunctionComponent<LoginProps> = () => {
         <main className="login_background">
             <section className='login_page'>
                 <div className='login_container'>
-                    <p className='logo'>FiͥlᴛⷮeͤrͬNoͦᴛⷮFoͦuͧndͩ</p>
+                    <p className='logo'>𝕱𝖎𝖑𝖙𝖊𝖗𝕹𝖔𝖙𝕱𝖔𝖚𝖓𝖉</p>
                     <LoginButton> Enter </LoginButton>
                 </div>
             </section>

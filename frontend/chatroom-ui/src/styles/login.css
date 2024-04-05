@@ -10,10 +10,10 @@
 }
 
 .logo {
-    font-size: 3rem;
+    font-size: 4rem;
     color: rgb(36, 3, 3);
     font-weight: bold;
-    text-shadow: 1px 1px #814700, 2px 2px 1px rgba(55, 6, 6, .5), 3px 3px 5px white;
+    text-shadow: 1px 1px rgba(120, 39, 39, 0.5), 2px 2px 1px rgba(55, 6, 6, .5), -1px -1px 0px rgba(120, 39, 39, .5), 3px 3px 5px white;
     display: inline-block;
     padding: 28px 30px 10px !important;
     font-family: auto;
