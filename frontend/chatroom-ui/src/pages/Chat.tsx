@@ -93,6 +93,17 @@ const ChatPage: React.FunctionComponent<ChatProps> = () => {
             exitToServer();
         };
 
+        var messages_container = document.getElementById("messages_container");
+        var messages_container_scroll = document.getElementById("messages_container")?.getElementsByTagName('div')[0];
+        if(messages_container != null && messages_container_scroll != null) {
+            messages_container.style.overflowY = "scroll";
+            messages_container.scrollTop = 1000;
+            const test2 = messages_container_scroll.offsetHeight;
+            const test3 = messages_container.scrollTop;
+            console.log(`scrollHeight ${test2}`);
+            console.log(`scrollTopscrollTopscrollTopscrollTop ${test3}`);
+        }
+
         window.addEventListener('beforeunload', handleBeforeUnload);
 
         return () => {
