@@ -87,6 +87,11 @@
         /* IE and Edge */
         scrollbar-width:none;
         /* Firefox */
+
+        .message {
+            word-break: break-all;
+            max-width: 100%;
+        }
     }
 
     #textbox_container {
