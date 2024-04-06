@@ -98,7 +98,7 @@ const ChatPage: React.FunctionComponent<ChatProps> = () => {
         return () => {
             window.removeEventListener('beforeunload', handleBeforeUnload);
         };
-    }, [usernameToSend]);
+    }, [usernameToSend, navigate]);
 
     const history = createBrowserHistory();
     const location = useLocation();
@@ -203,7 +203,7 @@ const ChatPage: React.FunctionComponent<ChatProps> = () => {
         }
 
         // Fetch messages from the server and update receivedMessages state
-        fetchMessagesFromServer();
+        ///fetchMessagesFromServer();
 
         console.log(receivedMessages)
 
@@ -219,6 +219,9 @@ const ChatPage: React.FunctionComponent<ChatProps> = () => {
 
     // placing usernameToSend and navigate under the [] meant that this useEffect() function will run whenever either usernameToSend or navigate changes
     useEffect(() => {
+
+        console.log("THIS USE EFFECT IS CALLED 1 !")
+
         if (localStorage.getItem('isExitToServerCalled')) {
 
             const storedChatID = JSON.parse(localStorage.getItem('savedChatID')|| '""');
@@ -252,8 +255,10 @@ const ChatPage: React.FunctionComponent<ChatProps> = () => {
 
         // remove the boolean 
         localStorage.removeItem('isExitToServerCalled')
+        // remove bool as reload function finished
+        localStorage.removeItem('isReloadChat')
         
-    }, [usernameToSend, navigate]);
+    }, [navigate]);
     
     useEffect(() => {
         if (typeof usernameToSend === 'string') {
@@ -298,6 +303,9 @@ const ChatPage: React.FunctionComponent<ChatProps> = () => {
         // /newuser request
 
         console.log(`custom_username in reloadChat: ${customUsername}`)
+
+        // make new local storage bool to say im running reloadchat
+        localStorage.setItem('isReloadChat', JSON.stringify(true))
 
         const dataToSendNewUser = {
             custom_username: customUsername
@@ -386,12 +394,12 @@ const ChatPage: React.FunctionComponent<ChatProps> = () => {
 
         const dataToSend = {
             chatroom_id: chatID,
-            username: customUsername,
+            user_uuid: usernameToSend,
             message: message
         };
 
         console.log(`/chat sending chatroom: ${dataToSend.chatroom_id}`);
-        console.log(`/chat sending username: ${dataToSend.username}`);
+        console.log(`/chat sending user_uuid: ${dataToSend.user_uuid}`);
         console.log(`/chat sending message: ${dataToSend.message}`);
 
         try {
@@ -416,23 +424,13 @@ const ChatPage: React.FunctionComponent<ChatProps> = () => {
             }
 
             //console.log(enterKeyCount);
+            
 
             if (enterKeyCount > maxKeyPress) {
                 warnUsers();
                 timer.setIsVisibleTrue(setVisibility);
             }
-
-            // const data = await response.json();
-
-            // if (!data)
-            //     return;
-
-            // // Update receivedMessages state with the messages received from the server
-            // if (data.username)
-            // {
-            //     warnUsers();
-            //     timer.setIsVisibleTrue(setVisibility);
-            // }
+                
             }
 
         } catch (error) {
@@ -487,12 +485,17 @@ const ChatPage: React.FunctionComponent<ChatProps> = () => {
         }
     }
 
-    const dataToSendExitRoom = {
-        chatroom_id: chatID,
-        user_uuid: usernameToSend
-    };
-
     const exitToServer = async () => {
+
+        const dataToSendExitRoom = {
+            chatroom_id: chatID,
+            user_uuid: usernameToSend
+        };
+
+        console.log("QUIT ABT TO BE CALLED")
+        console.log(`chatroom_id is ${dataToSendExitRoom.chatroom_id}`)
+        console.log(`user_uuid is ${dataToSendExitRoom.user_uuid}`)
+
         try {
             await fetch(`https://1bs9qf5xn1.execute-api.ap-southeast-1.amazonaws.com/quit`, {
             method: 'DELETE',
@@ -504,7 +507,7 @@ const ChatPage: React.FunctionComponent<ChatProps> = () => {
             });
         }
         catch (error) {
-            console.error('Error sending message:', error);
+            console.error('Error quitting:', error);
             throw error;
         }
     }
@@ -512,8 +515,16 @@ const ChatPage: React.FunctionComponent<ChatProps> = () => {
     const fetchMessagesFromServer = async () => {
         try {
 
+            // console.log("THIS IS CALLED 2 !")
+            // console.log(`got value anot: ${localStorage.getItem('isExitToServerCalled')}`)
+
+            if (localStorage.getItem('isReloadChat') === 'true') {
+                return;
+            }
+
             const dataToSend = {
-                chatroom_id: chatID
+                chatroom_id: chatID,
+                user_uuid: usernameToSend
             }
 
             const chatResponse = await fetch(`https://1bs9qf5xn1.execute-api.ap-southeast-1.amazonaws.com/poll`, {
@@ -529,7 +540,7 @@ const ChatPage: React.FunctionComponent<ChatProps> = () => {
                 localStorage.setItem('userDetails', JSON.stringify(chatData))
                 const users = localStorage.getItem('userDetails')
                 const username = users ? JSON.parse(users) : '';
-                
+            
                 // CHEck if server response was null before calling state change
                 if (!chatData)
                 return;
