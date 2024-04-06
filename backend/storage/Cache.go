@@ -74,6 +74,9 @@ func (c *Cache) NewUser(uuid string, username string) error {
 		"last_activity": {
 			S: aws.String(""),
 		},
+		"current_room": {
+			S: aws.String(""),
+		},
 	}
 
 	input := &dynamodb.PutItemInput{
@@ -116,7 +119,7 @@ func (c *Cache) NewChatRoom(id string) error {
 	return nil
 }
 
-func (c *Cache) AddUserToChatRoom(chatroom_id string) error {
+func (c *Cache) AddUserToChatRoom(uuid string, chatroom_id string) error {
 	key := map[string]*dynamodb.AttributeValue{
 		"chatroom_id": {
 			S: aws.String(chatroom_id),
@@ -139,6 +142,32 @@ func (c *Cache) AddUserToChatRoom(chatroom_id string) error {
 	}
 
 	_, err := c.db.UpdateItem(input)
+	if err != nil {
+		return err
+	}
+
+	user_key := map[string]*dynamodb.AttributeValue{
+		"user_uuid": {
+			S: aws.String(uuid),
+		},
+	}
+
+	user_updateExpression := "SET current_room = :room"
+	user_expressionValue := map[string]*dynamodb.AttributeValue{
+		":room": {
+			S: aws.String(chatroom_id),
+		},
+	}
+
+	user_input := &dynamodb.UpdateItemInput{
+		TableName:                 aws.String("chatroom_users"),
+		Key:                       user_key,
+		UpdateExpression:          &user_updateExpression,
+		ExpressionAttributeValues: user_expressionValue,
+		ReturnValues:              aws.String("UPDATED_NEW"),
+	}
+
+	_, err = c.db.UpdateItem(user_input)
 	if err != nil {
 		return err
 	}
@@ -270,6 +299,55 @@ func (c *Cache) GetRoomMessages(chatroom_id string) ([]model.Message, error) {
 	return chatroom.Messages, nil
 }
 
+func (c *Cache) GetToBeCulled(time string) ([][]string, error) {
+	params := &dynamodb.ScanInput{
+		TableName: aws.String("chatroom_users"),
+		ExpressionAttributeNames: map[string]*string{
+			"#la": aws.String("last_activity"),
+		},
+		ExpressionAttributeValues: map[string]*dynamodb.AttributeValue{
+			":val": {
+				S: aws.String(time),
+			},
+		},
+		FilterExpression: aws.String("#la < :val"),
+	}
+
+	var primaryKeys [][]string
+
+	err := c.db.ScanPages(params, func(page *dynamodb.ScanOutput, last bool) bool {
+		for _, item := range page.Items {
+			lastActivity, ok := item["last_activity"]
+			if !ok {
+				continue
+			}
+
+			if *lastActivity.S >= time {
+				continue
+			}
+
+			uuid, ok := item["user_uuid"]
+			if !ok {
+				continue
+			}
+
+			room, ok := item["current_room"]
+			if !ok {
+				continue
+			}
+
+			primaryKeys = append(primaryKeys, []string{*uuid.S, *room.S})
+		}
+		return !last
+	})
+
+	if err != nil {
+		return [][]string{}, err
+	}
+
+	return primaryKeys, nil
+}
+
 func (c *Cache) RemoveEarliestMessage(chatroom_id string) error {
 	key := map[string]*dynamodb.AttributeValue{
 		"chatroom_id": {
@@ -323,7 +401,7 @@ func (c *Cache) RemoveEarliestMessage(chatroom_id string) error {
 	return nil
 }
 
-func (c *Cache) RemoveUserFromChatRoom(chatroom_id string) error {
+func (c *Cache) RemoveUserFromChatRoom(uuid string, chatroom_id string) error {
 	key := map[string]*dynamodb.AttributeValue{
 		"chatroom_id": {
 			S: aws.String(chatroom_id),
@@ -346,6 +424,32 @@ func (c *Cache) RemoveUserFromChatRoom(chatroom_id string) error {
 	}
 
 	_, err := c.db.UpdateItem(input)
+	if err != nil {
+		return err
+	}
+
+	user_key := map[string]*dynamodb.AttributeValue{
+		"user_uuid": {
+			S: aws.String(uuid),
+		},
+	}
+
+	user_updateExpression := "SET current_room = :room"
+	user_expressionValue := map[string]*dynamodb.AttributeValue{
+		":room": {
+			S: aws.String(""),
+		},
+	}
+
+	user_input := &dynamodb.UpdateItemInput{
+		TableName:                 aws.String("chatroom_users"),
+		Key:                       user_key,
+		UpdateExpression:          &user_updateExpression,
+		ExpressionAttributeValues: user_expressionValue,
+		ReturnValues:              aws.String("UPDATED_NEW"),
+	}
+
+	_, err = c.db.UpdateItem(user_input)
 	if err != nil {
 		return err
 	}
@@ -417,36 +521,6 @@ func (c *Cache) UpdateUserActivity(uuid string, time string) error {
 	}
 
 	return nil
-}
-
-func (c *Cache) CullIfLessThan(time string) error {
-	params := &dynamodb.ScanInput{
-		TableName: aws.String("chatroom_users"),
-	}
-
-	err := c.db.ScanPages(params,
-		func(page *dynamodb.ScanOutput, lastPage bool) bool {
-			for _, item := range page.Items {
-				lastActivity, ok := item["last_activity"]
-				if !ok {
-					continue
-				}
-
-				if *lastActivity.S < time {
-					key := map[string]*dynamodb.AttributeValue{
-						"user_uuid": item["user_uuid"],
-					}
-
-					c.db.DeleteItem(&dynamodb.DeleteItemInput{
-						TableName: aws.String("chatroom_users"),
-						Key:       key,
-					})
-				}
-			}
-			return !lastPage
-		})
-
-	return err
 }
 
 func (c *Cache) ClearAll() error {

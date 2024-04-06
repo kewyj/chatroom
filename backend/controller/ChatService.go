@@ -110,7 +110,7 @@ func (cs *ChatService) AddUserToRoom(msg model.AddRoomRequest) error {
 		Username: username,
 	})
 
-	err = cs.storage.AddUserToChatRoom(msg.RoomID)
+	err = cs.storage.AddUserToChatRoom(msg.Username, msg.RoomID)
 	if err != nil {
 		return err
 	}
@@ -177,7 +177,7 @@ func (cs *ChatService) RemoveUserFromRoom(req model.ExitRoomRequest) error {
 		return err
 	}
 
-	err = cs.storage.RemoveUserFromChatRoom(req.RoomID)
+	err = cs.storage.RemoveUserFromChatRoom(req.Username, req.RoomID)
 	if err != nil {
 		return err
 	}
@@ -239,7 +239,31 @@ func (cs *ChatService) Cull() error {
 	cullTime := currentTime.Add(-10 * time.Minute)
 	cullTimeString := cullTime.Format("20060102150405")
 
-	return cs.storage.CullIfLessThan(cullTimeString)
+	usersToBeCulled, err := cs.storage.GetToBeCulled(cullTimeString)
+	if err != nil {
+		return err
+	}
+
+	for _, userRoomPair := range usersToBeCulled {
+		if userRoomPair[1] != "" { // in a room, leave before quitting user
+			err := cs.RemoveUserFromRoom(model.ExitRoomRequest{
+				Username: userRoomPair[0],
+				RoomID:   userRoomPair[1],
+			})
+			if err != nil {
+				return err
+			}
+		}
+
+		err := cs.RemoveUser(model.ExitRequest{
+			Username: userRoomPair[0],
+		})
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 func (cs *ChatService) sendUserJoinMessage(user model.AddRoomRequest) {
