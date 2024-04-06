@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useState, useRef} from 'react';
 import "@fortawesome/fontawesome-free/css/all.css";
 import AppState from '../store'
 import { useSelector, useDispatch } from 'react-redux';
@@ -61,10 +61,13 @@ const ChatPage: React.FunctionComponent<ChatProps> = () => {
     // when user comes here check if have userid, dont have, navigate to first page
     const navigate = useNavigate();
 
-
     // variables for spam feature
     const [enterKeyCount, setEnterKeyCount] = useState<number>(0);
     const maxKeyPress = 5; // 4 keypress as limit
+
+    const messagesContainerRef = useRef<HTMLDivElement>(null);
+    //const [scrollToBottom, setScrollToBottom] = useState(true);
+    //const [fetchMessagesCalled, setFetchMessagesCalled] = useState(false);
 
     // extract host and port form config obj
     // const [data, setData] = useState<any | null>(null);
@@ -93,16 +96,20 @@ const ChatPage: React.FunctionComponent<ChatProps> = () => {
             exitToServer();
         };
 
-        var messages_container = document.getElementById("messages_container");
-        var messages_container_scroll = document.getElementById("messages_container")?.getElementsByTagName('div')[0];
-        if(messages_container != null && messages_container_scroll != null) {
-            messages_container.style.overflowY = "scroll";
-            messages_container.scrollTop = 1000;
-            const test2 = messages_container_scroll.offsetHeight;
-            const test3 = messages_container.scrollTop;
-            console.log(`scrollHeight ${test2}`);
-            console.log(`scrollTopscrollTopscrollTopscrollTop ${test3}`);
-        }
+        // document.addEventListener("DOMContentLoaded", function() {
+        //     var messages_container = document.getElementById("messages_container");
+        //     var messages_container_scroll = document.getElementById("messages_container")?.getElementsByTagName('div')[0];
+        //     if(messages_container != null && messages_container_scroll != null) {
+        //         messages_container.style.overflowY = "scroll";
+        //         messages_container.scrollTop = messages_container.scrollHeight;
+        //         const test2 = messages_container_scroll.offsetHeight;
+        //         const test3 = messages_container.scrollTop;
+        //         console.log(`scrollHeight ${test2}`);
+        //         console.log(`scrollTopscrollTopscrollTopscrollTop ${test3}`);
+        //     }
+        // });
+
+
 
         window.addEventListener('beforeunload', handleBeforeUnload);
 
@@ -110,6 +117,18 @@ const ChatPage: React.FunctionComponent<ChatProps> = () => {
             window.removeEventListener('beforeunload', handleBeforeUnload);
         };
     }, [usernameToSend, navigate]);
+
+    // useEffect(() => {
+    //     console.log("Setting scroll to false")
+    //     if (scrollToBottom) {
+    //         if (messagesContainerRef.current) {
+    //             messagesContainerRef.current.scrollTop = messagesContainerRef.current.scrollHeight;
+    //         }
+    //         setScrollToBottom(false);
+    //     }
+    // }, [fetchMessagesCalled, scrollToBottom]);
+
+    // console.log(scrollToBottom)
 
     const history = createBrowserHistory();
     const location = useLocation();
@@ -208,16 +227,18 @@ const ChatPage: React.FunctionComponent<ChatProps> = () => {
     // }, [location]);
 
     useEffect(() => {
-        var messages_container = document.getElementById("messages_container");
-        if(messages_container != null) {
-            messages_container.scrollTop = messages_container.scrollHeight;
-        }
+        // var messages_container = document.getElementById("messages_container");
+        // if(messages_container != null) {
+        //     messages_container.scrollTop = messages_container.scrollHeight;
+        // }
 
         // Fetch messages from the server and update receivedMessages state
         ///fetchMessagesFromServer();
 
-        console.log(receivedMessages)
-
+        // make scroll to bottom bool when first come
+        console.log("isScroll about to be set")
+        localStorage.setItem('isScroll', JSON.stringify(true))
+        
         //Make interval every 0.1 sec
         const intervalId = setInterval(fetchMessagesFromServer, 100);
 
@@ -227,6 +248,23 @@ const ChatPage: React.FunctionComponent<ChatProps> = () => {
         };
 
     }, []);
+
+    useEffect(() => {
+
+        const condition = JSON.parse(localStorage.getItem('isScroll') || '""');
+        if (condition && receivedMessages.length > 0)
+        {
+            fetchMessagesFromServer().then(() => {
+                // After messages are fetched and received, scroll to the bottom
+                if (messagesContainerRef.current) {
+                    messagesContainerRef.current.scrollTop = messagesContainerRef.current.scrollHeight;
+                }
+            });
+            console.log("Remove isScoll")
+            localStorage.removeItem('isScroll');
+        }
+        
+    }, [receivedMessages]);
 
     // placing usernameToSend and navigate under the [] meant that this useEffect() function will run whenever either usernameToSend or navigate changes
     useEffect(() => {
@@ -525,8 +563,7 @@ const ChatPage: React.FunctionComponent<ChatProps> = () => {
 
     const fetchMessagesFromServer = async () => {
         try {
-
-            // console.log("THIS IS CALLED 2 !")
+            console.log("THIS IS CALLED 2 !")
             // console.log(`got value anot: ${localStorage.getItem('isExitToServerCalled')}`)
 
             if (localStorage.getItem('isReloadChat') === 'true') {
@@ -594,7 +631,7 @@ const ChatPage: React.FunctionComponent<ChatProps> = () => {
                         <span>✉</span>
                     </div>
                 </div>
-                <div className="row p-3" id="messages_container">
+                <div className="row p-3" id="messages_container" ref={messagesContainerRef}>
                     <div className="col-lg-12">
                         {receivedMessages && receivedMessages.length > 0 && (
                             <div>
