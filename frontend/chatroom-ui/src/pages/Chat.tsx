@@ -403,7 +403,7 @@ const ChatPage: React.FunctionComponent<ChatProps> = () => {
         console.log(`/chat sending message: ${dataToSend.message}`);
 
         try {
-            if (!isWhitespace(dataToSend.message)) {
+            if (!isWhitespace(dataToSend.message) && (message.length < 300)) {
 
             fetch(`https://1bs9qf5xn1.execute-api.ap-southeast-1.amazonaws.com/chat`, {
                 method: 'POST',
