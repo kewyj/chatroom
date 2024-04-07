@@ -124,6 +124,7 @@
 .warning {
     line-height: 0.2;
     color: red;
+    text-shadow: 1px 1px 5px #42030399, -1px -1px 5px #42030399;
     position: absolute;
     bottom: -20px;
     left: 20px;
